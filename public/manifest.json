@@ -1,0 +1,16 @@
+{
+  "name": "PAWON - Pasar Warga Pondokrejo",
+  "short_name": "PAWON",
+  "description": "Pasar Digital Resmi Kalurahan Pondokrejo",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#16a34a",
+  "icons": [
+    {
+      "src": "/logo.webp",
+      "sizes": "192x192 512x512",
+      "type": "image/webp"
+    }
+  ]
+}
