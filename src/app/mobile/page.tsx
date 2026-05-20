@@ -155,7 +155,7 @@ export default async function MobileHome({ searchParams }: Props) {
         {services.length > 0 && (
           <section>
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-black text-slate-900 tracking-tight">Jasa Profesional 🛠️</h2>
+              <h2 className="text-xl font-black text-slate-900 tracking-tight">Jasa Kalurahan 🛠️</h2>
               <Link href="/services" className="text-xs font-black text-green-700 uppercase tracking-widest">
                 Semua &rarr;
               </Link>

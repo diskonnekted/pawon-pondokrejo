@@ -80,7 +80,7 @@ export default async function RootLayout({
                   <div>
                     <h4 className="text-xs font-black uppercase tracking-[0.2em] text-slate-900 mb-6">Tentang Kami</h4>
                     <p className="text-slate-500 text-sm leading-relaxed mb-4">
-                      PAWON hadir untuk memperkuat ekonomi lokal dengan semangat gotong-royong. Semua transaksi di sini membantu pertumbuhan UMKM dan kemandirian ekonomi desa kita.
+                      PAWON hadir untuk memperkuat ekonomi lokal dengan semangat gotong-royong. Semua transaksi di sini membantu pertumbuhan UMKM dan kemandirian ekonomi kalurahan kita.
                     </p>
                     <div className="flex gap-4">
                       <div className="bg-green-50 text-green-700 px-3 py-1 rounded-lg text-[10px] font-black uppercase">Real UMKM</div>
@@ -89,7 +89,7 @@ export default async function RootLayout({
                   </div>
 
                   <div>
-                    <h4 className="text-xs font-black uppercase tracking-[0.2em] text-slate-900 mb-6">Layanan Desa</h4>
+                    <h4 className="text-xs font-black uppercase tracking-[0.2em] text-slate-900 mb-6">Layanan Kalurahan</h4>
                     <ul className="space-y-4 text-sm font-bold">
                       <li>
                         <Link href="/register-vendor" className="text-slate-500 hover:text-green-600 transition-colors">Daftar Jadi Penjual</Link>
@@ -123,7 +123,7 @@ export default async function RootLayout({
                     &copy; 2026 Kalurahan Pondokrejo. PAWON: Pasar Warga Pondokrejo.
                   </div>
                   <div className="flex gap-6 text-xs font-black uppercase tracking-widest text-slate-400">
-                    <span>Membangun Desa dari Tetangga</span>
+                    <span>Membangun Kalurahan dari Tetangga</span>
                   </div>
                 </div>
               </div>

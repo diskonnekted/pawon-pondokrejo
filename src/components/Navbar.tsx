@@ -33,7 +33,7 @@ export default function Navbar() {
           <Link href="/services" className="hover:text-green-600 transition-colors">Jasa</Link>
           <Link href="/categories" className="hover:text-green-600 transition-colors">Kategori</Link>
           <Link href="/vendors" className="hover:text-green-600 transition-colors">Toko</Link>
-          <Link href="/info" className="hover:text-green-600 transition-colors">Info Desa</Link>
+          <Link href="/info" className="hover:text-green-600 transition-colors">Info</Link>
           <Link href="/track" className="hover:text-green-600 transition-colors">Lacak</Link>
         </div>
 
