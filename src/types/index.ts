@@ -7,6 +7,7 @@ export interface Vendor {
   phone: string;
   address?: string;
   logo?: Image;
+  description?: string;
   isVerified?: boolean;
 }
 
