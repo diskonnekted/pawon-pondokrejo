@@ -258,6 +258,12 @@ export const INCUBATOR_SERVICES_QUERY = defineQuery(`
   }
 `)
 
+export const INCUBATOR_SETTINGS_QUERY = defineQuery(`
+  *[_type == "article" && title == "Aset Visual Inkubator UMKM"][0] {
+    image
+  }
+`)
+
 export const ORDER_BY_NUMBER_QUERY = defineQuery(`
   *[_type == "order" && orderNumber == $orderNumber][0] {
     _id,

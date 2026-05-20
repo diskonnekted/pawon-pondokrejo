@@ -1,6 +1,8 @@
 import { sanityFetch } from "@/sanity/lib/live";
-import { INCUBATOR_SERVICES_QUERY } from "@/sanity/lib/queries";
+import { INCUBATOR_SERVICES_QUERY, INCUBATOR_SETTINGS_QUERY } from "@/sanity/lib/queries";
 import { IncubatorService } from "@/types";
+import { urlFor } from "@/sanity/lib/image";
+import Image from "next/image";
 import { 
   GraduationCap, 
   Users, 
@@ -27,12 +29,29 @@ const iconMap: Record<string, any> = {
 };
 
 export default async function IncubatorPage() {
-  const { data: services } = await sanityFetch({ query: INCUBATOR_SERVICES_QUERY }) as { data: IncubatorService[] };
+  const [{ data: services }, { data: settings }] = await Promise.all([
+    sanityFetch({ query: INCUBATOR_SERVICES_QUERY }) as Promise<{ data: IncubatorService[] }>,
+    sanityFetch({ query: INCUBATOR_SETTINGS_QUERY }) as Promise<{ data: any }>
+  ]);
+
+  const heroImageUrl = settings?.image ? urlFor(settings.image).width(1920).height(1080).url() : null;
 
   return (
     <div className="bg-slate-50 min-h-screen">
       {/* Hero Section */}
       <section className="bg-slate-900 text-white py-24 md:py-32 relative overflow-hidden">
+        {heroImageUrl && (
+          <div className="absolute inset-0 z-0">
+            <Image 
+              src={heroImageUrl} 
+              alt="Inkubator Background" 
+              fill 
+              className="object-cover opacity-40"
+              priority
+            />
+            <div className="absolute inset-0 bg-gradient-to-b from-slate-900 via-transparent to-slate-900/60" />
+          </div>
+        )}
         <div className="container mx-auto px-4 relative z-10 text-center">
           <div className="inline-flex items-center gap-2 bg-green-500/20 text-green-400 px-4 py-2 rounded-full text-xs font-black uppercase tracking-widest mb-8 border border-green-500/30 backdrop-blur-md">
             Inisiatif Pemberdayaan Ekonomi
