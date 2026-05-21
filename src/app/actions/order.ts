@@ -72,7 +72,7 @@ export async function createOrder(formData: OrderFormData, items: CartItem[], to
     // --- INTEGRASI FONNTE WHATSAPP ---
     if (result._id) {
       console.log('Starting WhatsApp notifications...')
-      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
+      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://pawon.pondokrejo.id'
       
       const waMessage = formatOrderMessage(
         orderNumber,
