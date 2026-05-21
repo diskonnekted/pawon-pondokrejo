@@ -1,10 +1,11 @@
 import { sanityFetch } from "@/sanity/lib/live";
 import { PRODUCTS_QUERY, CATEGORIES_QUERY } from "@/sanity/lib/queries";
 import ProductCard from "@/components/ProductCard";
+import SearchFilter from "@/components/SearchFilter";
 import { Product, Category } from "@/types";
 import Link from "next/link";
 import { ChevronLeft, Filter, Search } from "lucide-react";
-import Form from "next/form";
+import { Suspense } from "react";
 
 interface Props {
   searchParams: Promise<{ 
@@ -29,7 +30,8 @@ export default async function MobileProductsPage({ searchParams }: Props) {
       image,
       "vendor": vendor->{
         name,
-        "slug": slug.current
+        "slug": slug.current,
+        isVerified
       }
     }
   `;
@@ -49,27 +51,19 @@ export default async function MobileProductsPage({ searchParams }: Props) {
     <div className="flex flex-col min-h-screen">
       {/* Mobile Header */}
       <header className="sticky top-0 bg-white/80 backdrop-blur-md z-40 border-b border-slate-100 p-4">
-        <div className="flex items-center gap-3 mb-4">
-          <Link href="/" className="p-2 rounded-xl bg-slate-50 text-slate-900 active:scale-90 transition-all">
+        <div className="flex items-center gap-3 mb-6">
+          <Link href="/" className="p-2 rounded-xl bg-slate-50 text-slate-900 active:scale-90 transition-all flex-shrink-0">
             <ChevronLeft className="w-6 h-6" />
           </Link>
-          <Form action="/products" className="flex-grow relative">
-            <input
-              name="q"
-              defaultValue={search}
-              placeholder="Cari produk kalurahan..."
-              className="w-full bg-slate-50 border-none rounded-2xl py-3 pl-10 pr-4 text-sm font-bold focus:ring-2 focus:ring-green-600 outline-none"
-            />
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-            {category && <input type="hidden" name="category" value={category} />}
-          </Form>
-          <button className="p-2 rounded-xl bg-slate-50 text-slate-900 active:scale-90 transition-all">
-            <Filter className="w-6 h-6" />
-          </button>
+          <div className="flex-grow">
+            <Suspense fallback={<div className="h-10 bg-slate-100 rounded-2xl animate-pulse" />}>
+              <SearchFilter />
+            </Suspense>
+          </div>
         </div>
 
         {/* Categories Horizontal Scroll */}
-        <div className="flex gap-2 overflow-x-auto no-scrollbar pb-2">
+        <div className="flex gap-2 overflow-x-auto no-scrollbar pb-4">
           <Link 
             href="/products"
             className={`px-4 py-2 rounded-full text-xs font-black whitespace-nowrap transition-all ${!category ? 'bg-green-600 text-white shadow-lg shadow-green-600/20' : 'bg-slate-100 text-slate-500'}`}

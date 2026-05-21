@@ -71,6 +71,13 @@ export default async function Home({ searchParams }: Props) {
         </div>
       </section>
 
+      {/* Top Search Bar (Desktop) */}
+      <div className="max-w-2xl mx-auto mb-20">
+        <Suspense fallback={<div className="h-20 animate-pulse bg-slate-200 rounded-3xl" />}>
+          <SearchFilter />
+        </Suspense>
+      </div>
+
       {/* Featured Categories */}
       {categories.length > 0 && (
         <section className="mb-20">
@@ -183,10 +190,6 @@ export default async function Home({ searchParams }: Props) {
       )}
 
       <div id="products">
-        <Suspense fallback={<div className="h-20 mb-12 animate-pulse bg-slate-200 rounded-3xl" />}>
-          <SearchFilter />
-        </Suspense>
-
         <section className="mb-20">
           <div className="flex items-end justify-between mb-10">
             <div>
