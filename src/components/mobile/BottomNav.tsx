@@ -17,7 +17,7 @@ export default function BottomNav() {
     { name: 'Produk', icon: ShoppingBag, href: '/products' },
     { name: 'Jasa', icon: Briefcase, href: '/services' },
     { name: 'Toko', icon: Store, href: '/vendors' },
-    { name: 'Keranjang', icon: ShoppingCart, href: '/cart' },
+    { name: 'Bayar', icon: ShoppingCart, href: '/cart' },
   ];
 
   return (
@@ -25,7 +25,7 @@ export default function BottomNav() {
       <div className="flex justify-between items-center max-w-md mx-auto">
         {navItems.map((item) => {
           const isActive = pathname === item.href;
-          const isCart = item.name === 'Keranjang';
+          const isCart = item.name === 'Bayar';
           
           return (
             <Link
