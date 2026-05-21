@@ -185,18 +185,19 @@ export default function MobileCheckoutPage() {
         </form>
       </main>
 
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-100 p-6 z-40 pb-8">
+      <div className="fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-xl border-t border-slate-100 p-6 z-50 pb-10 shadow-[0_-20px_40px_rgba(0,0,0,0.05)]">
         <button
           form="checkout-form"
           disabled={loading}
           type="submit"
-          className="w-full bg-green-600 text-white font-black py-5 rounded-3xl shadow-xl shadow-green-600/20 active:scale-95 transition-all flex items-center justify-center gap-3"
+          className="w-full bg-green-600 text-white font-black py-5 rounded-[2rem] shadow-xl shadow-green-600/30 active:scale-95 transition-all flex items-center justify-center gap-3"
         >
           {loading ? (
             <Loader2 className="w-6 h-6 animate-spin" />
           ) : (
             <>
-              <span>Pesan Sekarang (COD)</span>
+              <CheckCircle className="w-6 h-6" />
+              <span>Konfirmasi Pesanan (COD)</span>
             </>
           )}
         </button>

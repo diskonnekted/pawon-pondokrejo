@@ -9,8 +9,8 @@ export default function BottomNav() {
   const pathname = usePathname();
   const { totalItems } = useCart();
 
-  // On mobile, the pathname will actually start with /mobile due to rewrite
-  // but usePathname returns the URL path as seen by the browser (original path)
+  // Sembunyikan BottomNav di halaman checkout agar tidak menutupi tombol utama
+  if (pathname === '/checkout') return null;
   
   const navItems = [
     { name: 'Beranda', icon: Home, href: '/' },
