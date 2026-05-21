@@ -9,6 +9,9 @@ export interface Vendor {
   logo?: Image;
   description?: string;
   isVerified?: boolean;
+  isOpen?: boolean;
+  closingMessage?: string;
+  pin?: string;
 }
 
 export interface Category {
