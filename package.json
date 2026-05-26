@@ -13,7 +13,7 @@
     "@ducanh2912/next-pwa": "^10.2.9",
     "@portabletext/react": "^6.2.0",
     "@sanity/icons": "^3.7.4",
-    "@sanity/vision": "^5.25.1",
+    "@sanity/vision": "^5.27.0",
     "lucide-react": "^1.16.0",
     "next": "16.2.6",
     "next-sanity": "^12.4.5",
