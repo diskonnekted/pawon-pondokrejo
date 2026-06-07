@@ -20,6 +20,7 @@ export default function MobileCheckoutPage() {
     name: '',
     phone: '',
     address: '',
+    paymentMethod: 'cod',
   })
 
   // Load existing profile
@@ -90,7 +91,9 @@ export default function MobileCheckoutPage() {
             NOTIFIKASI TERKIRIM
           </h4>
           <p className="text-xs font-bold text-green-800 leading-relaxed">
-            Kami telah mengirimkan detail pesanan ke WhatsApp Anda. Admin Kalurahan akan segera memproses pesanan ini.
+            {formData.paymentMethod === 'qris' 
+              ? 'Kami telah mengirimkan detail pesanan ke WhatsApp Anda. Admin Desa sedang memverifikasi pembayaran Anda.'
+              : 'Kami telah mengirimkan detail pesanan ke WhatsApp Anda. Admin Desa akan segera memproses pesanan ini.'}
           </p>
         </div>
 
@@ -182,6 +185,56 @@ export default function MobileCheckoutPage() {
               </div>
             </div>
           </div>
+
+          <div>
+            <h2 className="text-xs font-black uppercase tracking-[0.2em] text-slate-400 mb-6 flex items-center gap-2">
+              <span className="w-4 h-4 flex items-center justify-center bg-green-600 text-white rounded-full text-[10px]">Rp</span>
+              Metode Pembayaran
+            </h2>
+            <div className="grid grid-cols-2 gap-4">
+              <button
+                type="button"
+                onClick={() => setFormData({ ...formData, paymentMethod: 'cod' })}
+                className={`p-4 rounded-[2rem] border-2 transition-all flex flex-col items-center justify-center gap-2 ${formData.paymentMethod === 'cod' ? 'border-green-600 bg-green-50 text-green-700' : 'border-transparent bg-slate-50 text-slate-600 hover:bg-slate-100'}`}
+              >
+                <span className="font-black text-sm">Tunai (COD)</span>
+                <span className="text-[10px] font-bold opacity-70">Bayar di Tempat</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setFormData({ ...formData, paymentMethod: 'qris' })}
+                className={`p-4 rounded-[2rem] border-2 transition-all flex flex-col items-center justify-center gap-2 ${formData.paymentMethod === 'qris' ? 'border-green-600 bg-green-50 text-green-700' : 'border-transparent bg-slate-50 text-slate-600 hover:bg-slate-100'}`}
+              >
+                <span className="font-black text-sm">QRIS</span>
+                <span className="text-[10px] font-bold opacity-70">Transfer / E-Wallet</span>
+              </button>
+            </div>
+            {formData.paymentMethod === 'qris' && (
+              <div className="mt-6 bg-slate-50 rounded-[2.5rem] p-6 text-center">
+                <h3 className="font-black text-slate-900 mb-4 text-sm">Scan QRIS Berikut:</h3>
+                <div className="bg-white p-4 rounded-3xl border border-slate-100 inline-block shadow-sm">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src="/qris.webp" alt="QRIS Desa Pondokrejo" className="w-40 h-40 object-contain mx-auto" />
+                </div>
+                <p className="text-xs font-bold text-slate-500 mt-4">
+                  a.n. <strong className="text-slate-700">Desa Pondokrejo</strong>
+                </p>
+                <div className="mt-4 p-3 bg-yellow-50 rounded-2xl text-left border border-yellow-100">
+                  <p className="text-[11px] font-bold text-yellow-800 leading-relaxed">
+                    Pastikan Anda telah berhasil mentransfer sesuai Total Bayar, lalu klik tombol di bawah untuk konfirmasi pesanan.
+                  </p>
+                </div>
+              </div>
+            )}
+            {formData.paymentMethod === 'cod' && (
+              <div className="mt-6 p-4 bg-yellow-50 rounded-2xl text-left border border-yellow-100 flex items-start gap-3">
+                <span className="text-yellow-600 mt-0.5"><Info className="w-5 h-5" /></span>
+                <p className="text-xs font-bold text-yellow-800 leading-relaxed">
+                  Siapkan uang tunai sejumlah Total Bayar saat kurir mengantarkan pesanan ke alamat Anda.
+                </p>
+              </div>
+            )}
+          </div>
         </form>
       </main>
 
@@ -197,7 +250,7 @@ export default function MobileCheckoutPage() {
           ) : (
             <>
               <CheckCircle className="w-6 h-6" />
-              <span>Konfirmasi Pesanan (COD)</span>
+              <span>{formData.paymentMethod === 'qris' ? 'Buat Pesanan & Sudah Bayar' : 'Konfirmasi Pesanan (COD)'}</span>
             </>
           )}
         </button>
@@ -205,3 +258,4 @@ export default function MobileCheckoutPage() {
     </div>
   )
 }
+

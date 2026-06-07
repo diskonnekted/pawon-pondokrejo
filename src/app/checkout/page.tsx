@@ -19,6 +19,7 @@ export default function CheckoutPage() {
     name: '',
     phone: '',
     address: '',
+    paymentMethod: 'cod',
   })
 
   // Load existing profile
@@ -88,7 +89,9 @@ export default function CheckoutPage() {
               Notifikasi Terkirim
             </p>
             <p className="mb-0 text-xs leading-relaxed">
-              Kami telah mengirimkan detail pesanan ke WhatsApp Anda. Admin Kalurahan akan segera memproses pesanan ini.
+              {formData.paymentMethod === 'qris' 
+                ? 'Kami telah mengirimkan detail pesanan ke WhatsApp Anda. Admin Desa sedang memverifikasi pembayaran Anda.'
+                : 'Kami telah mengirimkan detail pesanan ke WhatsApp Anda. Admin Desa akan segera memproses pesanan ini.'}
             </p>
           </div>
 
@@ -146,12 +149,34 @@ export default function CheckoutPage() {
               />
             </div>
 
+            <div className="pt-4 border-t">
+              <label className="block text-sm font-bold text-gray-700 mb-3">Metode Pembayaran</label>
+              <div className="grid grid-cols-2 gap-4">
+                <button
+                  type="button"
+                  onClick={() => setFormData({ ...formData, paymentMethod: 'cod' })}
+                  className={`p-4 rounded-2xl border-2 transition-all flex flex-col items-center justify-center gap-2 ${formData.paymentMethod === 'cod' ? 'border-green-500 bg-green-50 text-green-700' : 'border-gray-200 hover:border-green-200'}`}
+                >
+                  <span className="font-bold">Bayar di Tempat</span>
+                  <span className="text-xs opacity-70">Tunai ke Kurir (COD)</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFormData({ ...formData, paymentMethod: 'qris' })}
+                  className={`p-4 rounded-2xl border-2 transition-all flex flex-col items-center justify-center gap-2 ${formData.paymentMethod === 'qris' ? 'border-green-500 bg-green-50 text-green-700' : 'border-gray-200 hover:border-green-200'}`}
+                >
+                  <span className="font-bold">Bayar Pakai QRIS</span>
+                  <span className="text-xs opacity-70">Aman & Terpantau</span>
+                </button>
+              </div>
+            </div>
+
             <button
               disabled={loading}
               type="submit"
               className="w-full bg-green-600 text-white font-bold py-4 rounded-2xl hover:bg-green-700 transition-colors shadow-lg shadow-green-100 flex items-center justify-center gap-2"
             >
-              {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : 'Buat Pesanan Sekarang (COD)'}
+              {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : formData.paymentMethod === 'qris' ? 'Buat Pesanan & Saya Sudah Bayar' : 'Buat Pesanan Sekarang (COD)'}
             </button>
           </form>
         </div>
@@ -185,11 +210,28 @@ export default function CheckoutPage() {
             </div>
             <div className="bg-yellow-50 p-4 rounded-2xl text-xs text-yellow-800 flex items-start gap-2">
               <span className="font-bold text-lg leading-none">!</span>
-              <p>Anda akan membayar pesanan ini secara tunai (COD) saat barang diantar oleh kurir ke alamat Anda.</p>
+              <p>
+                {formData.paymentMethod === 'qris'
+                  ? 'Silakan selesaikan pembayaran dengan scan QRIS dan klik "Buat Pesanan" untuk mengirim bukti bayar ke Admin Desa.'
+                  : 'Anda akan membayar pesanan ini secara tunai (COD) saat barang diantar oleh kurir ke alamat Anda.'}
+              </p>
             </div>
+            {formData.paymentMethod === 'qris' && (
+              <div className="border-t pt-6 mt-4 text-center">
+                <h3 className="font-bold text-gray-800 mb-4">Scan QRIS Berikut:</h3>
+                <div className="bg-white p-4 rounded-2xl border-2 border-gray-100 inline-block">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src="/qris.webp" alt="QRIS Desa Pondokrejo" className="w-48 h-48 object-contain mx-auto" />
+                </div>
+                <p className="text-xs text-gray-500 mt-4">
+                  a.n. <strong>Desa Pondokrejo</strong>
+                </p>
+              </div>
+            )}
           </div>
         </div>
       </div>
     </div>
   )
 }
+
