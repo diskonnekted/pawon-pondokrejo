@@ -39,11 +39,11 @@ export async function createServiceOrder(data: {
       deliveryAddress: data.deliveryAddress,
       customer: {
         _type: 'reference',
-        _ref: data.customerId,
+        _ref: data.customerId.replace('drafts.', ''),
       },
       serviceItem: {
         _type: 'reference',
-        _ref: data.serviceId,
+        _ref: data.serviceId.replace('drafts.', ''),
       },
       serviceDate: data.serviceDate,
       totalAmount: service.price, // Harga acuan awal (bisa nego nanti)

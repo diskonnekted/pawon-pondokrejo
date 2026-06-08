@@ -54,7 +54,7 @@ export async function createOrder(formData: OrderFormData, items: CartItem[], to
         _key: Math.random().toString(36).substr(2, 9),
         product: {
           _type: 'reference',
-          _ref: item._id,
+          _ref: item._id.replace('drafts.', ''),
         },
         quantity: item.quantity,
         price: item.price,
@@ -64,7 +64,7 @@ export async function createOrder(formData: OrderFormData, items: CartItem[], to
     if (customerId) {
       doc.customer = {
         _type: 'reference',
-        _ref: customerId
+        _ref: customerId.replace('drafts.', '')
       }
     }
 
