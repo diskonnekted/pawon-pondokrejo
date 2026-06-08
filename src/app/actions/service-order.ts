@@ -21,7 +21,7 @@ export async function createServiceOrder(data: {
   try {
     // Cari layanan untuk mendapatkan vendor
     const service = await writeClient.fetch(`*[_type == "service" && _id == $serviceId][0]{
-      name, price, "vendor": vendor->{_id}
+      name, price, "vendor": vendor->{_id, name, phone}
     }`, { serviceId: data.serviceId })
 
     if (!service) {
@@ -98,6 +98,12 @@ export async function createServiceOrder(data: {
         // Kirim ke Admin
         const adminMsg = `${waMessage}\n\n✅ Konfirmasi (Sanggup): ${baseUrl}/order/${orderNumber}/action?role=admin&status=accepted&label=Sanggup+Mengerjakan\n❌ Batal/Tolak: ${baseUrl}/order/${orderNumber}/action?role=admin&status=cancelled&label=Tolak+Pesanan`
         await sendWhatsAppNotification(adminPhone, adminMsg)
+
+        // Kirim ke Penjual Jasa (Vendor)
+        if (service.vendor?.phone) {
+          const sellerMsg = `🔔 *PESANAN JASA BARU* 🔔\n\nHalo *${service.vendor.name}*,\nAda pemesanan jasa yang masuk untuk Anda:\n\n👤 *Pemesan:* ${data.customerName}\n📞 *No. WA:* ${data.customerPhone}\n📍 *Lokasi:* ${data.deliveryAddress}\n🗓️ *Jadwal:* ${new Date(data.serviceDate).toLocaleString('id-ID', { dateStyle: 'full', timeStyle: 'short' })}\n💼 *Jasa:* ${service.name}\n\n*Admin Desa akan segera menghubungi Anda untuk memastikan kesanggupan.* Anda juga bisa berkoordinasi langsung dengan pemesan melalui nomor WA di atas.`
+          await sendWhatsAppNotification(service.vendor.phone, sellerMsg)
+        }
 
         // Kirim ke Pembeli
         await sendWhatsAppNotification(
