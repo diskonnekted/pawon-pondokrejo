@@ -47,7 +47,15 @@ export default async function ServicesPage({ searchParams }: Props) {
     sanityFetch({ query: CATEGORIES_QUERY }) as Promise<{ data: Category[] }>
   ]);
 
-  const serviceCategories = categories.filter(c => c.serviceCount !== undefined && c.serviceCount > 0);
+  const SERVICE_CATEGORY_SLUGS = [
+    'jasa-teknisi', 'kesehatan-kebugaran', 'instalasi-internet', 'servis-mobil', 
+    'servis-motor', 'tambal-ban', 'servis-mesin-cuci', 'servis-listrik', 
+    'servis-hp', 'servis-ac', 'fotografer', 'video-shooting', 'jasa-lainnya'
+  ];
+
+  const serviceCategories = categories.filter(c => 
+    (c.serviceCount !== undefined && c.serviceCount > 0) || SERVICE_CATEGORY_SLUGS.includes(c.slug)
+  );
 
   const services = allServices.filter(service => {
     if (!category) return true;
