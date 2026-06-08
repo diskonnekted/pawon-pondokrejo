@@ -27,6 +27,13 @@ export const customerType = defineType({
       validation: (rule) => rule.required(),
     }),
     defineField({
+      name: 'pin',
+      title: 'PIN Login',
+      type: 'string',
+      initialValue: '123456',
+      description: 'PIN default adalah 123456. Warga bisa mengubahnya sendiri.',
+    }),
+    defineField({
       name: 'isVerified',
       title: 'Sudah Diverifikasi Kalurahan?',
       type: 'boolean',
