@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { fetchAllOrders } from '@/app/actions/admin'
-import { Loader2, RefreshCw, LogOut, Package, User, MapPin, CreditCard, ChevronRight, CheckCircle, Clock, Truck, AlertTriangle } from 'lucide-react'
+import { Loader2, RefreshCw, LogOut, Package, User, MapPin, CreditCard, ChevronRight, CheckCircle, Clock, Truck, AlertTriangle, Printer } from 'lucide-react'
 
 // Define Order type locally based on our query
 type Order = {
@@ -156,9 +156,9 @@ export default function AdminDashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 pb-20">
+    <div className="min-h-screen bg-slate-50 pb-20 print:bg-white print:pb-0">
       {/* Header */}
-      <header className="bg-white border-b border-slate-200 sticky top-0 z-40">
+      <header className="bg-white border-b border-slate-200 sticky top-0 z-40 print:hidden">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-slate-900 text-white rounded-xl flex items-center justify-center">
@@ -172,14 +172,23 @@ export default function AdminDashboardPage() {
           
           <div className="flex items-center gap-2">
             <button 
+              onClick={() => window.print()}
+              className="p-2.5 rounded-xl bg-blue-50 text-blue-600 hover:bg-blue-100 active:scale-95 transition-all"
+              title="Cetak Laporan / PDF"
+            >
+              <Printer className="w-5 h-5" />
+            </button>
+            <button 
               onClick={() => loadOrders(false)}
               className="p-2.5 rounded-xl bg-slate-100 text-slate-600 hover:bg-slate-200 active:scale-95 transition-all"
+              title="Muat Ulang"
             >
               <RefreshCw className={`w-5 h-5 ${refreshing ? 'animate-spin' : ''}`} />
             </button>
             <button 
               onClick={handleLogout}
               className="p-2.5 rounded-xl bg-red-50 text-red-600 hover:bg-red-100 active:scale-95 transition-all"
+              title="Keluar"
             >
               <LogOut className="w-5 h-5" />
             </button>
@@ -188,7 +197,7 @@ export default function AdminDashboardPage() {
       </header>
 
       {/* Main Content */}
-      <main className="container mx-auto px-4 mt-8">
+      <main className="container mx-auto px-4 mt-8 print:hidden">
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           <div className="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm">
@@ -314,7 +323,58 @@ export default function AdminDashboardPage() {
           )}
         </div>
       </main>
+
+      {/* Print Table (Hidden in UI, Shown in Print) */}
+      <div className="hidden print:block p-8 bg-white font-sans text-slate-900">
+        <div className="text-center mb-8 border-b-2 border-slate-900 pb-6">
+          <h1 className="text-3xl font-black uppercase tracking-widest">Rekapitulasi Pesanan</h1>
+          <p className="text-slate-500 font-bold mt-2">PAWON Pondokrejo - Dicetak pada {new Date().toLocaleString('id-ID', { dateStyle: 'long', timeStyle: 'short' })}</p>
+        </div>
+
+        <table className="w-full text-left border-collapse mb-8">
+          <thead>
+            <tr className="border-b-2 border-slate-800 text-sm">
+              <th className="py-4 px-3 font-black uppercase tracking-wider bg-slate-50">No.</th>
+              <th className="py-4 px-3 font-black uppercase tracking-wider bg-slate-50">Waktu</th>
+              <th className="py-4 px-3 font-black uppercase tracking-wider bg-slate-50">Pelanggan</th>
+              <th className="py-4 px-3 font-black uppercase tracking-wider bg-slate-50">Item</th>
+              <th className="py-4 px-3 font-black uppercase tracking-wider bg-slate-50">Status</th>
+              <th className="py-4 px-3 font-black uppercase tracking-wider bg-slate-50 text-right">Total</th>
+            </tr>
+          </thead>
+          <tbody className="text-sm align-top">
+            {orders.map((order, idx) => (
+              <tr key={order._id} className="border-b border-slate-200">
+                <td className="py-4 px-3 font-black">{order.orderNumber}</td>
+                <td className="py-4 px-3">{new Date(order._createdAt).toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' })}</td>
+                <td className="py-4 px-3">
+                  <div className="font-bold">{order.customerName}</div>
+                  <div className="text-xs mt-1">{order.customerPhone}</div>
+                </td>
+                <td className="py-4 px-3">
+                  <ul className="list-disc pl-4 text-xs space-y-1">
+                    {order.items.map((item, i) => (
+                      <li key={i}>{item.product?.name} <span className="font-bold">(x{item.quantity})</span></li>
+                    ))}
+                  </ul>
+                </td>
+                <td className="py-4 px-3 font-bold">{getStatusText(order.status, order.paymentMethod, order.paymentStatus)}</td>
+                <td className="py-4 px-3 text-right font-black">Rp{order.totalAmount.toLocaleString('id-ID')}</td>
+              </tr>
+            ))}
+          </tbody>
+          <tfoot>
+            <tr className="border-t-[3px] border-slate-900 bg-slate-50">
+              <td colSpan={5} className="py-5 px-3 text-right font-black uppercase tracking-widest">Total Nilai Transaksi Keseluruhan</td>
+              <td className="py-5 px-3 text-right font-black text-xl">Rp{orders.reduce((acc, curr) => acc + curr.totalAmount, 0).toLocaleString('id-ID')}</td>
+            </tr>
+          </tfoot>
+        </table>
+
+        <div className="text-center text-xs font-bold text-slate-400 uppercase tracking-widest mt-10">
+          - Dokumen ini digenerate secara otomatis oleh sistem PAWON Pondokrejo -
+        </div>
+      </div>
     </div>
   )
 }
-
