@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { createServiceOrder } from '@/app/actions/service-order'
+import { getOrCreateCustomer } from '@/app/actions/customer'
 import { Calendar, MapPin, Loader2, CheckCircle2, User, Phone } from 'lucide-react'
 import Link from 'next/link'
 
@@ -33,10 +34,17 @@ export default function ServiceBookingForm({ serviceId, serviceName, vendorPhone
     // Karena kita memakai sistem tanpa login penuh (berdasarkan nomor HP di dasbor lacak), kita pakai ID dummy atau biarkan kosong jika schema tidak strict (tapi schema minta required)
     // Sebenarnya di sistem lacak, kita buat customer reference. Jika tidak ada, buat dummy reference atau biarkan error terjadi jika backend strict.
     // Kita anggap kita buatkan ID dummy customer dulu, karena di sini tidak ada context login.
-    const dummyCustomerId = `drafts.${Math.random().toString(36).substr(2, 9)}` // Ideally should be created in backend if not exists, but for now we skip strict validation or handle it in action.
-    
-    // Perbaikan: Di action kita harusnya create customer jika belum ada, atau ambil dari sesi. 
-    // Untuk sederhana, biarkan backend yang handle ID.
+    const customerRes = await getOrCreateCustomer({
+      name: formData.customerName,
+      phone: formData.customerPhone,
+      address: formData.deliveryAddress,
+    })
+
+    if (!customerRes.success || !customerRes.customerId) {
+      setErrorMsg(customerRes.error || 'Gagal menyimpan profil pembeli.')
+      setLoading(false)
+      return
+    }
     
     const res = await createServiceOrder({
       customerName: formData.customerName,
@@ -44,7 +52,7 @@ export default function ServiceBookingForm({ serviceId, serviceName, vendorPhone
       deliveryAddress: formData.deliveryAddress,
       serviceDate: new Date(formData.serviceDate).toISOString(),
       serviceId,
-      customerId: dummyCustomerId // Harus diperbaiki di backend agar tidak error foreign key
+      customerId: customerRes.customerId
     })
 
     if (res.success) {
