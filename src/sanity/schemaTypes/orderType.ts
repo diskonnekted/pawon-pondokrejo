@@ -33,6 +33,7 @@ export const orderType = defineType({
       title: 'Profil Warga (Pembeli)',
       type: 'reference',
       to: [{ type: 'customer' }],
+      weak: true,
       validation: (rule) => rule.required(),
     }),
     defineField({
@@ -52,6 +53,7 @@ export const orderType = defineType({
       title: 'Layanan Jasa yang Dipesan',
       type: 'reference',
       to: [{ type: 'service' }],
+      weak: true,
       hidden: ({ document }) => document?.orderCategory !== 'service',
     }),
     defineField({
@@ -68,7 +70,7 @@ export const orderType = defineType({
         {
           type: 'object',
           fields: [
-            defineField({ name: 'product', type: 'reference', to: [{ type: 'product' }] }),
+            defineField({ name: 'product', type: 'reference', to: [{ type: 'product' }], weak: true }),
             defineField({ name: 'quantity', type: 'number' }),
             defineField({ name: 'price', type: 'number', title: 'Harga saat dibeli' }),
           ],
@@ -128,13 +130,14 @@ export const orderType = defineType({
     defineField({
       name: 'status',
       type: 'string',
+      title: 'Status Pesanan',
       options: {
         list: [
           { title: 'Menunggu Konfirmasi', value: 'pending' },
-          { title: 'Diterima / Sanggup (Jasa)', value: 'accepted' },
+          { title: 'Sedang Diproses / Disanggupi', value: 'accepted' },
           { title: 'Diproses Penjual (Barang)', value: 'processing' },
           { title: 'Diserahkan ke Kurir (Barang)', value: 'shipped' },
-          { title: 'Dalam Perjalanan (Barang/Jasa)', value: 'delivering' },
+          { title: 'Dalam Perjalanan / Proses Jasa', value: 'delivering' },
           { title: 'Selesai', value: 'completed' },
           { title: 'Dibatalkan', value: 'cancelled' },
           { title: 'Ada Masalah', value: 'problem' },
@@ -147,6 +150,7 @@ export const orderType = defineType({
       title: 'Kurir yang Bertugas',
       type: 'reference',
       to: [{ type: 'courier' }],
+      hidden: ({ document }) => document?.orderCategory === 'service',
     }),
     defineField({
       name: 'courierNotes',
@@ -154,6 +158,13 @@ export const orderType = defineType({
       type: 'text',
       rows: 3,
       description: 'Instruksi tambahan dari Admin (misal: Barang pecah belah, titipkan ke tetangga jika tidak ada orang, dll).',
+      hidden: ({ document }) => document?.orderCategory === 'service',
+    }),
+    defineField({
+      name: 'vendorId_for_query_only',
+      title: 'Vendor ID (Query Purpose)',
+      type: 'string',
+      hidden: true,
     }),
   ],
 })
