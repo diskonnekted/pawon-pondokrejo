@@ -37,10 +37,37 @@ export async function createOrder(formData: OrderFormData, items: CartItem[], to
       }
     }
 
+    const publishDraft = async (id: string) => {
+      if (id.startsWith('drafts.')) {
+        const draft = await writeClient.fetch(`*[_id == $id][0]`, { id })
+        if (draft) {
+          const publishedId = id.replace('drafts.', '')
+          const publishedDoc = { ...draft, _id: publishedId }
+          await writeClient.createOrReplace(publishedDoc)
+          await writeClient.delete(id)
+          return publishedId
+        }
+      }
+      return id.replace('drafts.', '')
+    }
+
     const orderNumber = `ORD-${Math.random().toString(36).substr(2, 9).toUpperCase()}`
-    
+
+    // Resolve items (publishing drafts if needed)
+    const resolvedItems = await Promise.all(items.map(async (item) => ({
+      _key: Math.random().toString(36).substr(2, 9),
+      product: {
+        _type: 'reference',
+        _ref: await publishDraft(item._id),
+        _weak: true,
+      },
+      quantity: item.quantity,
+      price: item.price,
+    })))
+
     const doc: any = {
       _type: 'order',
+      orderCategory: 'product',
       orderNumber,
       customerName: formData.name,
       customerPhone: formData.phone,
@@ -50,22 +77,13 @@ export async function createOrder(formData: OrderFormData, items: CartItem[], to
       paymentMethod: formData.paymentMethod || 'cod',
       paymentStatus: 'unpaid',
       status: 'pending',
-      items: items.map((item) => ({
-        _key: Math.random().toString(36).substr(2, 9),
-        product: {
-          _type: 'reference',
-          _ref: item._id.replace('drafts.', ''),
-          _weak: true,
-        },
-        quantity: item.quantity,
-        price: item.price,
-      })),
+      items: resolvedItems,
     }
 
     if (customerId) {
       doc.customer = {
         _type: 'reference',
-        _ref: customerId.replace('drafts.', ''),
+        _ref: await publishDraft(customerId),
         _weak: true,
       }
     }

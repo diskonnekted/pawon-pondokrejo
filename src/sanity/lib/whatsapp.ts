@@ -35,6 +35,32 @@ Ongkir: Rp${shippingFee.toLocaleString('id-ID')}
 _Mohon segera diproses dan hubungi pemesan jika diperlukan. Terima kasih!_`
 }
 
+export function formatServiceOrderMessage(
+  orderNumber: string,
+  customerName: string,
+  customerPhone: string,
+  serviceAddress: string,
+  serviceName: string,
+  serviceDate: string,
+  price: number
+): string {
+  const dateStr = new Date(serviceDate).toLocaleString('id-ID', { dateStyle: 'full', timeStyle: 'short' })
+  return `🛠️ *PEMESANAN JASA BARU* 🛠️
+----------------------------------
+🆔 *No. Pesanan:* ${orderNumber}
+👤 *Pemesan:* ${customerName}
+📞 *No. WhatsApp:* ${customerPhone}
+📍 *Alamat Pelaksanaan:* ${serviceAddress}
+🗓️ *Jadwal:* ${dateStr}
+----------------------------------
+
+💼 *JASA YANG DIPESAN:*
+*${serviceName}*
+Estimasi Harga: Rp${price.toLocaleString('id-ID')}
+
+_Mohon segera konfirmasi kesanggupan dan hubungi pemesan!_`
+}
+
 /**
  * Mengirim pesan WhatsApp menggunakan API Fonnte.
  */

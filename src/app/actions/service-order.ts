@@ -21,12 +21,29 @@ export async function createServiceOrder(data: {
   try {
     // Cari layanan untuk mendapatkan vendor
     const service = await writeClient.fetch(`*[_type == "service" && _id == $serviceId][0]{
-      price, "vendor": vendor->{_id}
+      name, price, "vendor": vendor->{_id}
     }`, { serviceId: data.serviceId })
 
     if (!service) {
       return { success: false, error: 'Layanan jasa tidak ditemukan.' }
     }
+
+    const publishDraft = async (id: string) => {
+      if (id.startsWith('drafts.')) {
+        const draft = await writeClient.fetch(`*[_id == $id][0]`, { id })
+        if (draft) {
+          const publishedId = id.replace('drafts.', '')
+          const publishedDoc = { ...draft, _id: publishedId }
+          await writeClient.createOrReplace(publishedDoc)
+          await writeClient.delete(id)
+          return publishedId
+        }
+      }
+      return id.replace('drafts.', '')
+    }
+
+    const finalCustomerId = await publishDraft(data.customerId)
+    const finalServiceId = await publishDraft(data.serviceId)
 
     const orderNumber = `SVC-${Date.now().toString().slice(-6)}-${Math.floor(Math.random() * 1000)}`
 
@@ -39,12 +56,12 @@ export async function createServiceOrder(data: {
       deliveryAddress: data.deliveryAddress,
       customer: {
         _type: 'reference',
-        _ref: data.customerId.replace('drafts.', ''),
+        _ref: finalCustomerId,
         _weak: true,
       },
       serviceItem: {
         _type: 'reference',
-        _ref: data.serviceId.replace('drafts.', ''),
+        _ref: finalServiceId,
         _weak: true,
       },
       serviceDate: data.serviceDate,
@@ -57,6 +74,40 @@ export async function createServiceOrder(data: {
     }
 
     const result = await writeClient.create(doc)
+
+    // --- INTEGRASI FONNTE WHATSAPP ---
+    if (result._id) {
+      try {
+        const { formatServiceOrderMessage, sendWhatsAppNotification } = await import('@/sanity/lib/whatsapp')
+        const { APP_SETTINGS_QUERY } = await import('@/sanity/lib/queries')
+        
+        const settings = await writeClient.fetch(APP_SETTINGS_QUERY)
+        const adminPhone = settings?.adminPhone || '081328128315'
+        const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://pawon-Pondokrejo.vercel.app'
+        
+        const waMessage = formatServiceOrderMessage(
+          orderNumber,
+          data.customerName,
+          data.customerPhone,
+          data.deliveryAddress,
+          service.name,
+          data.serviceDate,
+          service.price
+        )
+
+        // Kirim ke Admin
+        const adminMsg = `${waMessage}\n\n✅ Konfirmasi (Sanggup): ${baseUrl}/order/${orderNumber}/action?role=admin&status=accepted&label=Sanggup+Mengerjakan\n❌ Batal/Tolak: ${baseUrl}/order/${orderNumber}/action?role=admin&status=cancelled&label=Tolak+Pesanan`
+        await sendWhatsAppNotification(adminPhone, adminMsg)
+
+        // Kirim ke Pembeli
+        await sendWhatsAppNotification(
+          data.customerPhone, 
+          `Halo *${data.customerName}*,\n\nTerima kasih, pemesanan jasa *${service.name}* Anda telah kami terima dengan ID *${orderNumber}*.\n\nAdmin Desa dan Penjual Jasa sedang mengecek jadwal dan akan segera menghubungi Anda untuk konfirmasi pelaksanaan.`
+        )
+      } catch (err) {
+        console.error('Failed to send WA notification for service:', err)
+      }
+    }
 
     return { success: true, orderId: result._id, orderNumber }
   } catch (error: any) {
