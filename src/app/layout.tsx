@@ -66,7 +66,7 @@ export default async function RootLayout({
             {children}
           </main>
           {!isMobile && (
-            <footer className="border-t bg-white pt-16 pb-8">
+            <footer className="border-t bg-white pt-16 pb-8 print:hidden">
               <div className="container mx-auto px-4">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-12 mb-16">
                   <div className="col-span-1 md:col-span-1">

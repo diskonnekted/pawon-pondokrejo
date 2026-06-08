@@ -9,7 +9,7 @@ export default function Navbar() {
   const { totalItems } = useCart()
 
   return (
-    <nav className="border-b bg-white/80 backdrop-blur-md sticky top-0 z-50">
+    <nav className="border-b bg-white/80 backdrop-blur-md sticky top-0 z-50 print:hidden">
       <div className="container mx-auto px-4 h-20 flex items-center justify-between gap-4">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-3 group min-w-fit">
