@@ -59,7 +59,6 @@ export async function createOrder(formData: OrderFormData, items: CartItem[], to
       product: {
         _type: 'reference',
         _ref: await publishDraft(item._id),
-        _weak: true,
       },
       quantity: item.quantity,
       price: item.price,
@@ -84,7 +83,6 @@ export async function createOrder(formData: OrderFormData, items: CartItem[], to
       doc.customer = {
         _type: 'reference',
         _ref: await publishDraft(customerId),
-        _weak: true,
       }
     }
 

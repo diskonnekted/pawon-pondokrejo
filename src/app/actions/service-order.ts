@@ -57,12 +57,10 @@ export async function createServiceOrder(data: {
       customer: {
         _type: 'reference',
         _ref: finalCustomerId,
-        _weak: true,
       },
       serviceItem: {
         _type: 'reference',
         _ref: finalServiceId,
-        _weak: true,
       },
       serviceDate: data.serviceDate,
       totalAmount: service.price, // Harga acuan awal (bisa nego nanti)

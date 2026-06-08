@@ -33,7 +33,6 @@ export const orderType = defineType({
       title: 'Profil Warga (Pembeli)',
       type: 'reference',
       to: [{ type: 'customer' }],
-      weak: true,
       validation: (rule) => rule.required(),
     }),
     defineField({
@@ -53,7 +52,6 @@ export const orderType = defineType({
       title: 'Layanan Jasa yang Dipesan',
       type: 'reference',
       to: [{ type: 'service' }],
-      weak: true,
       hidden: ({ document }) => document?.orderCategory !== 'service',
     }),
     defineField({
@@ -70,7 +68,7 @@ export const orderType = defineType({
         {
           type: 'object',
           fields: [
-            defineField({ name: 'product', type: 'reference', to: [{ type: 'product' }], weak: true }),
+            defineField({ name: 'product', type: 'reference', to: [{ type: 'product' }] }),
             defineField({ name: 'quantity', type: 'number' }),
             defineField({ name: 'price', type: 'number', title: 'Harga saat dibeli' }),
           ],
