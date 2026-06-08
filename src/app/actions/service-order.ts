@@ -21,7 +21,7 @@ export async function createServiceOrder(data: {
   try {
     // Cari layanan untuk mendapatkan vendor
     const service = await writeClient.fetch(`*[_type == "service" && _id == $serviceId][0]{
-      price, vendor->_id
+      price, "vendor": vendor->{_id}
     }`, { serviceId: data.serviceId })
 
     if (!service) {
