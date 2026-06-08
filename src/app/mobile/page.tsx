@@ -256,6 +256,25 @@ export default async function MobileHome({ searchParams }: Props) {
                 <div className="absolute top-0 right-0 w-32 h-32 bg-green-500/10 blur-2xl rounded-full -mr-16 -mt-16"></div>
               </div>
             </section>
+            {/* Registration CTA */}
+            <section className="pb-10">
+              <div className="grid grid-cols-1 gap-4">
+                <Link href="/mobile/register-vendor" className="bg-white border border-slate-100 rounded-2xl p-6 flex flex-col items-center justify-center text-center shadow-sm active:scale-95 transition-all">
+                  <div className="w-12 h-12 bg-green-100 text-green-600 rounded-full flex items-center justify-center mb-3">
+                    <span className="text-xl">🏪</span>
+                  </div>
+                  <h4 className="font-black text-slate-900 mb-1">Daftar Jadi Penjual</h4>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Buka Lapak Anda</p>
+                </Link>
+                <Link href="/mobile/register-courier" className="bg-white border border-slate-100 rounded-2xl p-6 flex flex-col items-center justify-center text-center shadow-sm active:scale-95 transition-all">
+                  <div className="w-12 h-12 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mb-3">
+                    <span className="text-xl">🛵</span>
+                  </div>
+                  <h4 className="font-black text-slate-900 mb-1">Daftar Jadi Kurir</h4>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Antar Pesanan Warga</p>
+                </Link>
+              </div>
+            </section>
           </>
         )}
       </div>
