@@ -47,47 +47,11 @@ export default async function MobileServicesPage({ searchParams }: Props) {
     sanityFetch({ query: CATEGORIES_QUERY }) as Promise<{ data: Category[] }>
   ]);
 
-  const sanityServiceCategories = categories.filter(c => c.serviceCount !== undefined && c.serviceCount > 0);
-
-  const predefinedCategories = [
-    { _id: 'pre-1', name: 'Instalasi Internet', slug: 'instalasi-internet' },
-    { _id: 'pre-2', name: 'Servis Mobil', slug: 'servis-mobil' },
-    { _id: 'pre-3', name: 'Servis Motor', slug: 'servis-motor' },
-    { _id: 'pre-4', name: 'Tambal Ban', slug: 'tambal-ban' },
-    { _id: 'pre-5', name: 'Servis Mesin Cuci', slug: 'servis-mesin-cuci' },
-    { _id: 'pre-6', name: 'Servis Listrik', slug: 'servis-listrik' },
-    { _id: 'pre-7', name: 'Servis HP', slug: 'servis-hp' },
-    { _id: 'pre-8', name: 'Servis AC', slug: 'servis-ac' },
-    { _id: 'pre-9', name: 'Fotografer', slug: 'fotografer' },
-    { _id: 'pre-10', name: 'Video Shooting', slug: 'video-shooting' },
-  ];
-
-  const serviceCategories = [...sanityServiceCategories];
-  for (const pc of predefinedCategories) {
-    if (!serviceCategories.some(c => c.slug === pc.slug)) {
-      serviceCategories.push(pc as any);
-    }
-  }
-
-  function getCategoryForService(serviceName: string) {
-    const name = serviceName.toLowerCase();
-    if (name.includes('internet') || name.includes('wifi')) return 'instalasi-internet';
-    if (name.includes('mobil')) return 'servis-mobil';
-    if (name.includes('motor')) return 'servis-motor';
-    if (name.includes('ban')) return 'tambal-ban';
-    if (name.includes('mesin cuci')) return 'servis-mesin-cuci';
-    if (name.includes('listrik')) return 'servis-listrik';
-    if (name.includes('hp') || name.includes('handphone') || name.includes('ponsel')) return 'servis-hp';
-    if (name.includes('ac')) return 'servis-ac';
-    if (name.includes('foto') || name.includes('kamera')) return 'fotografer';
-    if (name.includes('video')) return 'video-shooting';
-    return null;
-  }
+  const serviceCategories = categories.filter(c => c.serviceCount !== undefined && c.serviceCount > 0);
 
   const services = allServices.filter(service => {
     if (!category) return true;
-    if (service.categories?.some(c => c.slug === category)) return true;
-    return getCategoryForService(service.name) === category;
+    return service.categories?.some(c => c.slug === category);
   });
 
   return (
