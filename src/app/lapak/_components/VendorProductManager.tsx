@@ -1,8 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { getVendorProducts, createVendorProduct, uploadImageToSanity, deleteVendorProduct } from '@/app/actions/vendor-products'
-import { Package, Plus, Trash2, Image as ImageIcon, Loader2, X, CheckCircle2, DollarSign, Database, Tags } from 'lucide-react'
+import { getVendorProducts, createVendorProduct, updateVendorProduct, uploadImageToSanity, deleteVendorProduct } from '@/app/actions/vendor-products'
+import { Package, Plus, Trash2, Edit, Image as ImageIcon, Loader2, X, CheckCircle2, DollarSign, Database, Tags } from 'lucide-react'
 import Image from 'next/image'
 import { urlFor } from '@/sanity/lib/image'
 import { client } from '@/sanity/lib/client'
@@ -12,10 +12,11 @@ export default function VendorProductManager({ vendorId }: { vendorId: string })
   const [products, setProducts] = useState<any[]>([])
   const [categories, setCategories] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
-  const [showAddForm, setShowAddForm] = useState(false)
+  const [showForm, setShowForm] = useState(false)
   const [submitting, setSubmitting] = useState(false)
 
   // Form State
+  const [editingProductId, setEditingProductId] = useState<string | null>(null)
   const [newName, setNewName] = useState('')
   const [newPrice, setNewPrice] = useState('')
   const [newStock, setNewStock] = useState('')
@@ -53,46 +54,90 @@ export default function VendorProductManager({ vendorId }: { vendorId: string })
     }
   }
 
-  const handleAddProduct = async (e: React.FormEvent) => {
+  const openAddForm = () => {
+    setEditingProductId(null)
+    setNewName('')
+    setNewPrice('')
+    setNewStock('')
+    setNewDesc('')
+    setNewCategoryId('')
+    setSelectedFile(null)
+    setPreviewUrl(null)
+    setShowForm(true)
+  }
+
+  const openEditForm = (product: any) => {
+    setEditingProductId(product._id)
+    setNewName(product.name)
+    setNewPrice(product.price.toString())
+    setNewStock(product.stock.toString())
+    setNewDesc(product.description || '')
+    setNewCategoryId(product.categories?.[0] || '')
+    setSelectedFile(null)
+    setPreviewUrl(product.image ? urlFor(product.image).width(400).url() : null)
+    setShowForm(true)
+  }
+
+  const handleSubmitProduct = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!selectedFile) return alert('Pilih foto produk terlebih dahulu.')
+    
+    // Validasi gambar hanya wajib saat tambah baru
+    if (!editingProductId && !selectedFile) return alert('Pilih foto produk terlebih dahulu.')
     if (!newCategoryId) return alert('Silakan pilih kategori produk.')
 
     setSubmitting(true)
     
-    // 1. Upload Image
-    const formData = new FormData()
-    formData.append('file', selectedFile)
-    const uploadRes = await uploadImageToSanity(formData)
+    let assetId: string | null = null
 
-    if (!uploadRes.success || !uploadRes.assetId) {
-      alert(uploadRes.error)
-      setSubmitting(false)
-      return
+    // 1. Upload Image jika ada foto baru yang dipilih
+    if (selectedFile) {
+      const formData = new FormData()
+      formData.append('file', selectedFile)
+      const uploadRes = await uploadImageToSanity(formData)
+
+      if (!uploadRes.success || !uploadRes.assetId) {
+        alert(uploadRes.error)
+        setSubmitting(false)
+        return
+      }
+      assetId = uploadRes.assetId
     }
 
-    // 2. Create Product
-    const productRes = await createVendorProduct(vendorId, {
-      name: newName,
-      price: Number(newPrice),
-      stock: Number(newStock),
-      description: newDesc,
-      assetId: uploadRes.assetId,
-      categoryIds: [newCategoryId]
-    })
+    // 2. Simpan atau Perbarui Produk
+    if (editingProductId) {
+      // Mode Edit
+      const productRes = await updateVendorProduct(editingProductId, vendorId, {
+        name: newName,
+        price: Number(newPrice),
+        stock: Number(newStock),
+        description: newDesc,
+        assetId: assetId,
+        categoryIds: [newCategoryId]
+      })
 
-    if (productRes.success) {
-      setNewName('')
-      setNewPrice('')
-      setNewStock('')
-      setNewDesc('')
-      setNewCategoryId('')
-      setSelectedFile(null)
-      setPreviewUrl(null)
-      setShowAddForm(false)
-      fetchProducts()
+      if (productRes.success) {
+        setShowForm(false)
+        fetchProducts()
+      } else {
+        alert(productRes.error)
+      }
     } else {
-      alert(productRes.error)
+      // Mode Tambah
+      const productRes = await createVendorProduct(vendorId, {
+        name: newName,
+        price: Number(newPrice),
+        stock: Number(newStock),
+        description: newDesc,
+        assetId: assetId!,
+        categoryIds: [newCategoryId]
+      })
+
+      if (productRes.success) {
+        setShowForm(false)
+        fetchProducts()
+      } else {
+        alert(productRes.error)
+      }
     }
     setSubmitting(false)
   }
@@ -115,7 +160,7 @@ export default function VendorProductManager({ vendorId }: { vendorId: string })
           <h3 className="font-black text-slate-800 text-lg">Produk Saya</h3>
         </div>
         <button
-          onClick={() => setShowAddForm(true)}
+          onClick={openAddForm}
           className="flex items-center gap-2 bg-green-600 text-white font-black px-4 py-2.5 rounded-2xl text-sm shadow-lg shadow-green-200 active:scale-95 transition-all"
         >
           <Plus className="w-4 h-4" />
@@ -156,29 +201,37 @@ export default function VendorProductManager({ vendorId }: { vendorId: string })
                   </span>
                 </div>
               </div>
-              <button 
-                onClick={() => handleDelete(p._id)}
-                className="p-3 text-slate-300 hover:text-red-600 transition-colors active:scale-90"
-              >
-                <Trash2 className="w-5 h-5" />
-              </button>
+              <div className="flex flex-col gap-2">
+                <button 
+                  onClick={() => openEditForm(p)}
+                  className="p-3 text-slate-300 hover:text-blue-600 transition-colors active:scale-90 bg-slate-50 rounded-xl"
+                >
+                  <Edit className="w-5 h-5" />
+                </button>
+                <button 
+                  onClick={() => handleDelete(p._id)}
+                  className="p-3 text-slate-300 hover:text-red-600 transition-colors active:scale-90 bg-slate-50 rounded-xl"
+                >
+                  <Trash2 className="w-5 h-5" />
+                </button>
+              </div>
             </div>
           ))}
         </div>
       )}
 
-      {/* Add Product Modal */}
-      {showAddForm && (
+      {/* Add/Edit Product Modal */}
+      {showForm && (
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-6 bg-slate-900/60 backdrop-blur-sm">
-          <div className="bg-white w-full max-w-xl rounded-t-[3rem] sm:rounded-[3rem] p-8 max-h-[90vh] overflow-y-auto animate-in slide-in-from-bottom-20 duration-300">
+          <div className="bg-white w-full max-w-xl rounded-t-[3rem] sm:rounded-[3rem] p-8 max-h-[90vh] overflow-y-auto animate-in slide-in-from-bottom-20 duration-300 shadow-2xl">
             <div className="flex items-center justify-between mb-8">
-              <h2 className="text-2xl font-black text-slate-900">Tambah Produk Baru</h2>
-              <button onClick={() => setShowAddForm(false)} className="p-2 bg-slate-50 rounded-full text-slate-400">
+              <h2 className="text-2xl font-black text-slate-900">{editingProductId ? 'Edit Produk' : 'Tambah Produk Baru'}</h2>
+              <button onClick={() => setShowForm(false)} className="p-2 bg-slate-50 rounded-full text-slate-400 hover:bg-slate-100 transition-colors">
                 <X className="w-6 h-6" />
               </button>
             </div>
 
-            <form onSubmit={handleAddProduct} className="space-y-6">
+            <form onSubmit={handleSubmitProduct} className="space-y-6">
               {/* Image Upload */}
               <div className="space-y-3">
                 <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Foto Produk</label>
@@ -187,7 +240,12 @@ export default function VendorProductManager({ vendorId }: { vendorId: string })
                   className="relative aspect-video rounded-3xl border-2 border-dashed border-slate-200 bg-slate-50 flex flex-col items-center justify-center cursor-pointer overflow-hidden group hover:bg-slate-100 transition-all"
                 >
                   {previewUrl ? (
-                    <Image src={previewUrl} alt="Preview" fill className="object-cover" />
+                    <>
+                      <Image src={previewUrl} alt="Preview" fill className="object-cover" />
+                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                        <p className="text-white font-bold text-sm">Ubah Foto</p>
+                      </div>
+                    </>
                   ) : (
                     <>
                       <ImageIcon className="w-10 h-10 text-slate-300 mb-2 group-hover:scale-110 transition-transform" />
@@ -273,7 +331,7 @@ export default function VendorProductManager({ vendorId }: { vendorId: string })
                 ) : (
                   <>
                     <CheckCircle2 className="w-6 h-6" />
-                    <span>Upload & Publikasi Produk</span>
+                    <span>{editingProductId ? 'Simpan Perubahan' : 'Upload & Publikasi Produk'}</span>
                   </>
                 )}
               </button>
