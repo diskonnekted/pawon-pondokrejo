@@ -55,6 +55,7 @@ export async function createOrder(formData: OrderFormData, items: CartItem[], to
         product: {
           _type: 'reference',
           _ref: item._id.replace('drafts.', ''),
+          _weak: true,
         },
         quantity: item.quantity,
         price: item.price,
@@ -64,7 +65,8 @@ export async function createOrder(formData: OrderFormData, items: CartItem[], to
     if (customerId) {
       doc.customer = {
         _type: 'reference',
-        _ref: customerId.replace('drafts.', '')
+        _ref: customerId.replace('drafts.', ''),
+        _weak: true,
       }
     }
 
