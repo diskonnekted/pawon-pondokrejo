@@ -22,7 +22,7 @@ export default async function MobileCategoriesPage() {
         {categories.map((category) => (
           <Link 
             key={category._id}
-            href={`/products?category=${category.slug}`}
+            href={category.serviceCount! > 0 && category.productCount === 0 ? `/mobile/services?category=${category.slug}` : `/mobile/products?category=${category.slug}`}
             className="group relative h-48 rounded-[2.5rem] overflow-hidden shadow-xl active:scale-[0.98] transition-all"
           >
             {category.image ? (

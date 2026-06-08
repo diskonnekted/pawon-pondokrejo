@@ -23,7 +23,7 @@ export default async function CategoriesPage() {
         {categories.map((category) => (
           <Link 
             key={category._id}
-            href={`/products?category=${category.slug}`}
+            href={category.serviceCount! > 0 && category.productCount === 0 ? `/services?category=${category.slug}` : `/products?category=${category.slug}`}
             className="group relative h-80 rounded-[3rem] overflow-hidden shadow-2xl shadow-slate-200 hover:scale-[1.02] transition-all duration-500"
           >
             {category.image ? (

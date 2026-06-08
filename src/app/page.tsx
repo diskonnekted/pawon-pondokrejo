@@ -94,7 +94,7 @@ export default async function Home({ searchParams }: Props) {
             {categories.slice(0, 5).map((category) => (
               <Link 
                 key={category._id}
-                href={`/products?category=${category.slug}`}
+                href={category.serviceCount! > 0 && category.productCount === 0 ? `/services?category=${category.slug}` : `/products?category=${category.slug}`}
                 className="group relative h-64 rounded-[2.5rem] overflow-hidden shadow-lg shadow-slate-100 transition-all duration-500 hover:scale-[1.03]"
               >
                 {category.image ? (

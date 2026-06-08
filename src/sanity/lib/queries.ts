@@ -80,7 +80,9 @@ export const CATEGORIES_QUERY = defineQuery(`
     _id,
     name,
     "slug": slug.current,
-    image
+    image,
+    "productCount": count(*[_type == "product" && references(^._id)]),
+    "serviceCount": count(*[_type == "service" && references(^._id)])
   }
 `)
 

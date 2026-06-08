@@ -111,7 +111,7 @@ export default async function MobileHome({ searchParams }: Props) {
                   {categories.map((category) => (
                     <Link 
                       key={category._id}
-                      href={`/products?category=${category.slug}`}
+                      href={category.serviceCount! > 0 && category.productCount === 0 ? `/mobile/services?category=${category.slug}` : `/mobile/products?category=${category.slug}`}
                       className="min-w-[140px] w-[140px] group relative h-48 rounded-[2rem] overflow-hidden shadow-lg snap-start active:scale-95 transition-all"
                     >
                       {category.image ? (

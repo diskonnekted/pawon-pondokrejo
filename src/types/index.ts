@@ -19,6 +19,8 @@ export interface Category {
   name: string;
   slug: string;
   image?: Image;
+  productCount?: number;
+  serviceCount?: number;
 }
 
 export interface Product {

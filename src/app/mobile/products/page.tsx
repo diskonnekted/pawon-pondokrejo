@@ -70,7 +70,7 @@ export default async function MobileProductsPage({ searchParams }: Props) {
           >
             Semua
           </Link>
-          {categories.filter((cat) => !cat.name.toLowerCase().includes('jasa')).map((cat) => (
+          {categories.filter((cat) => cat.productCount === undefined || cat.productCount > 0).map((cat) => (
             <Link
               key={cat._id}
               href={`/products?category=${cat.slug}${search ? `&q=${search}` : ''}`}
