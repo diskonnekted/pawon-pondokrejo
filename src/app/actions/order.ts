@@ -109,15 +109,16 @@ export async function createOrder(formData: OrderFormData, items: CartItem[], to
       // 1. Kirim ke Admin
       console.log('Sending to Admin:', adminPhone)
       
-      const couriers = await writeClient.fetch(`*[_type == "courier" && (isActive == true || status == "active")]{_id, name}`)
+      const couriers = await writeClient.fetch(`*[_type == "courier"]{_id, name, phone, isActive, status}`)
       let courierSelectionCod = ''
       let courierSelectionQris = ''
       
       if (couriers && couriers.length > 0) {
-        couriers.forEach((c: any) => {
+        couriers.filter((c: any) => c.isActive || c.status === 'active').forEach((c: any) => {
           const safeName = encodeURIComponent(c.name)
-          courierSelectionCod += `\n👤 Kirim tugas ke ${c.name}: ${baseUrl}/order/${orderNumber}/action?role=admin&status=processing_cod&courierId=${c._id}&label=Kirim+Tugas+ke+${safeName}`
-          courierSelectionQris += `\n👤 Konfirmasi & Kirim ke ${c.name}: ${baseUrl}/order/${orderNumber}/action?role=admin&status=paid&courierId=${c._id}&label=Konfirmasi+dan+Kirim+ke+${safeName}`
+          const safePhone = encodeURIComponent(c.phone || '')
+          courierSelectionCod += `\n👤 Kirim tugas ke ${c.name}: ${baseUrl}/order/${orderNumber}/action?role=admin&status=processing_cod&courierId=${c._id}&courierPhone=${safePhone}&label=Kirim+Tugas+ke+${safeName}`
+          courierSelectionQris += `\n👤 Konfirmasi & Kirim ke ${c.name}: ${baseUrl}/order/${orderNumber}/action?role=admin&status=paid&courierId=${c._id}&courierPhone=${safePhone}&label=Konfirmasi+dan+Kirim+ke+${safeName}`
         })
       } else {
         courierSelectionCod = `\n✅ Konfirmasi Pesanan COD: ${baseUrl}/order/${orderNumber}/action?role=admin&status=processing_cod&label=Konfirmasi+Pesanan+COD`
@@ -183,7 +184,7 @@ async function notifySellerAndCourier(orderNumber: string, customerName: string,
   await sendWhatsAppNotification(cleanCourierPhone, courierMessage)
 }
 
-export async function updateOrderStatus(orderNumber: string, newStatus: string, note?: string, courierId?: string) {
+export async function updateOrderStatus(orderNumber: string, newStatus: string, note?: string, courierId?: string, courierPhoneParam?: string) {
   try {
     const query = `*[_type == "order" && orderNumber == $orderNumber][0]{
       _id, customerName, customerPhone, deliveryAddress, totalAmount, paymentMethod, paymentStatus, status, courier->{phone},
@@ -209,8 +210,8 @@ export async function updateOrderStatus(orderNumber: string, newStatus: string, 
       await sendWhatsAppNotification(order.customerPhone, `Halo *${order.customerName}*,\n\nPembayaran QRIS Anda untuk pesanan *${orderNumber}* sudah diterima oleh Admin Desa.\n\nBarang pesanan Anda saat ini sedang disiapkan oleh Penjual dan akan segera dikirim oleh Kurir ke alamat Anda.`)
 
       // Dapatkan nomor kurir yang dipilih
-      let courierPhone = '628156605634'
-      if (courierId) {
+      let courierPhone = courierPhoneParam || '628156605634'
+      if (courierId && !courierPhoneParam) {
         // Fetch semua kurir lalu filter di JS agar kebal terhadap isu ID Drafts Sanity
         const allCouriers = await writeClient.fetch(`*[_type == "courier"]{_id, phone}`)
         const matchedCourier = allCouriers.find((c: any) => c._id === courierId || c._id === `drafts.${courierId}` || `drafts.${c._id}` === courierId)
@@ -251,8 +252,8 @@ export async function updateOrderStatus(orderNumber: string, newStatus: string, 
       await sendWhatsAppNotification(order.customerPhone, `Halo *${order.customerName}*,\n\nPesanan COD Anda (*${orderNumber}*) sudah dikonfirmasi oleh Admin Desa.\n\nBarang pesanan Anda saat ini sedang disiapkan oleh Penjual dan akan segera dikirim oleh Kurir ke alamat Anda.`)
 
       // Dapatkan nomor kurir yang dipilih
-      let courierPhone = '628156605634'
-      if (courierId) {
+      let courierPhone = courierPhoneParam || '628156605634'
+      if (courierId && !courierPhoneParam) {
         // Fetch semua kurir lalu filter di JS agar kebal terhadap isu ID Drafts Sanity
         const allCouriers = await writeClient.fetch(`*[_type == "courier"]{_id, phone}`)
         const matchedCourier = allCouriers.find((c: any) => c._id === courierId || c._id === `drafts.${courierId}` || `drafts.${c._id}` === courierId)

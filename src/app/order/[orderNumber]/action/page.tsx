@@ -19,6 +19,7 @@ export default function OrderActionPage({ params }: Props) {
   const status = searchParams.get('status')
   const label = searchParams.get('label')
   const courierId = searchParams.get('courierId')
+  const courierPhone = searchParams.get('courierPhone')
 
   const [loading, setLoading] = useState(false)
   const [done, setDone] = useState(false)
@@ -28,7 +29,7 @@ export default function OrderActionPage({ params }: Props) {
     if (!orderNumber || !status) return
     
     setLoading(true)
-    const res = await updateOrderStatus(orderNumber, status, `Update via WhatsApp (${role})`, courierId || undefined)
+    const res = await updateOrderStatus(orderNumber, status, `Update via WhatsApp (${role})`, courierId || undefined, courierPhone || undefined)
     
     if (res.success) {
       setDone(true)
