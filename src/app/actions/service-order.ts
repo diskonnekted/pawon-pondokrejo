@@ -81,7 +81,7 @@ export async function createServiceOrder(data: {
         
         const settings = await writeClient.fetch(APP_SETTINGS_QUERY)
         const adminPhone = settings?.adminPhone || '081328128315'
-        const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://pawon-Pondokrejo.vercel.app'
+        const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://pawon.pondokrejo.id'
         
         const waMessage = formatServiceOrderMessage(
           orderNumber,

@@ -92,7 +92,7 @@ export async function createOrder(formData: OrderFormData, items: CartItem[], to
     // --- INTEGRASI FONNTE WHATSAPP ---
     if (result._id) {
       console.log('Starting WhatsApp notifications...')
-      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://pawon-Pondokrejo.vercel.app'
+      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://pawon.pondokrejo.id'
       const isQris = formData.paymentMethod === 'qris'
       
       const waMessage = formatOrderMessage(
@@ -154,7 +154,7 @@ export async function createOrder(formData: OrderFormData, items: CartItem[], to
 }
 
 async function notifySellerAndCourier(orderNumber: string, customerName: string, deliveryAddress: string, items: {name: string, quantity: number}[], totalAmount: number, courierPhone: string = '628156605634') {
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://pawon-Pondokrejo.vercel.app'
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://pawon.pondokrejo.id'
   
   // 3. Kirim ke Penjual
   console.log('Sending to Seller...')
@@ -254,7 +254,7 @@ export async function updateOrderStatus(orderNumber: string, newStatus: string, 
         .set({ status: 'delivering' })
         .commit()
 
-      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://pawon-Pondokrejo.vercel.app'
+      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://pawon.pondokrejo.id'
       const buyerLinks = `\n\n*KONFIRMASI PENERIMAAN:*\n✅ Barang Diterima: ${baseUrl}/order/${orderNumber}/action?role=buyer&status=completed&label=Barang+Sudah+Diterima\n❌ Barang Bermasalah: ${baseUrl}/order/${orderNumber}/action?role=buyer&status=problem&label=Lapor+Barang+Bermasalah`
       await sendWhatsAppNotification(order.customerPhone, `Halo *${order.customerName}*,\n\nPesanan Anda (*${orderNumber}*) saat ini *SEDANG DALAM PERJALANAN* menuju alamat Anda oleh Kurir kami.\n\nHarap siapkan uang tunai sebesar *Rp${order.totalAmount.toLocaleString('id-ID')}* (jika menggunakan COD).\n\nJika barang sudah Anda terima dengan baik, mohon klik link konfirmasi di bawah ini:${buyerLinks}`)
 
