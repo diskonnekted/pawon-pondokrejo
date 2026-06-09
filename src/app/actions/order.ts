@@ -154,7 +154,7 @@ export async function createOrder(formData: OrderFormData, items: CartItem[], to
   }
 }
 
-async function notifySellerAndCourier(orderNumber: string, customerName: string, deliveryAddress: string, items: {name: string, quantity: number}[], totalAmount: number, courierPhone: string = '628156605634', sellerPhones: string[] = []) {
+async function notifySellerAndCourier(orderNumber: string, customerName: string, deliveryAddress: string, items: {name: string, quantity: number}[], totalAmount: number, courierPhone: string = '6282241593592', sellerPhones: string[] = []) {
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://pawon.pondokrejo.id'
   
   // 3. Kirim ke Penjual
@@ -210,7 +210,7 @@ export async function updateOrderStatus(orderNumber: string, newStatus: string, 
       await sendWhatsAppNotification(order.customerPhone, `Halo *${order.customerName}*,\n\nPembayaran QRIS Anda untuk pesanan *${orderNumber}* sudah diterima oleh Admin Desa.\n\nBarang pesanan Anda saat ini sedang disiapkan oleh Penjual dan akan segera dikirim oleh Kurir ke alamat Anda.`)
 
       // Dapatkan nomor kurir yang dipilih
-      let courierPhone = courierPhoneParam || '628156605634'
+      let courierPhone = courierPhoneParam || '6282241593592'
       if (courierId && !courierPhoneParam) {
         // Fetch semua kurir lalu filter di JS agar kebal terhadap isu ID Drafts Sanity
         const allCouriers = await writeClient.fetch(`*[_type == "courier"]{_id, phone}`)
@@ -252,7 +252,7 @@ export async function updateOrderStatus(orderNumber: string, newStatus: string, 
       await sendWhatsAppNotification(order.customerPhone, `Halo *${order.customerName}*,\n\nPesanan COD Anda (*${orderNumber}*) sudah dikonfirmasi oleh Admin Desa.\n\nBarang pesanan Anda saat ini sedang disiapkan oleh Penjual dan akan segera dikirim oleh Kurir ke alamat Anda.`)
 
       // Dapatkan nomor kurir yang dipilih
-      let courierPhone = courierPhoneParam || '628156605634'
+      let courierPhone = courierPhoneParam || '6282241593592'
       if (courierId && !courierPhoneParam) {
         // Fetch semua kurir lalu filter di JS agar kebal terhadap isu ID Drafts Sanity
         const allCouriers = await writeClient.fetch(`*[_type == "courier"]{_id, phone}`)
