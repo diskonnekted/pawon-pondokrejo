@@ -174,10 +174,13 @@ async function notifySellerAndCourier(orderNumber: string, customerName: string,
   }
 
   // 4. Kirim ke Kurir
-  console.log('Sending to Courier...', courierPhone)
+  let cleanCourierPhone = courierPhone.replace(/\D/g, '')
+  if (cleanCourierPhone.startsWith('0')) cleanCourierPhone = '62' + cleanCourierPhone.substring(1)
+  console.log('Sending to Courier...', cleanCourierPhone)
+
   const courierLinks = `\n\n*UPDATE STATUS KURIR:*\n👍 Terima Order: ${baseUrl}/order/${orderNumber}/action?role=courier&status=accepted&label=Terima+Tugas+Pengantaran\n📦 Ambil dari Seller: ${baseUrl}/order/${orderNumber}/action?role=courier&status=shipped&label=Ambil+Barang+dari+Seller\n🚚 Mulai Kirim: ${baseUrl}/order/${orderNumber}/action?role=courier&status=delivering&label=Mulai+Pengiriman\n🏁 Barang Diserahkan: ${baseUrl}/order/${orderNumber}/action?role=courier&status=delivered&label=Barang+Telah+Diserahkan\n⚠️ Ada Masalah: ${baseUrl}/order/${orderNumber}/action?role=courier&status=problem&label=Lapor+Masalah+Pengiriman`
   const courierMessage = `🚚 *TUGAS PENGANTARAN BARU* 🚚\n\nHalo Kurir PAWON,\nAda tugas pengantaran baru.\n\n📍 *Alamat Tujuan:* ${deliveryAddress}\n👤 *Penerima:* ${customerName}\n🆔 *No. Pesanan:* ${orderNumber}\n💰 *Tagihan:* Rp${totalAmount.toLocaleString('id-ID')} (Cek apakah COD atau QRIS)${courierLinks}`
-  await sendWhatsAppNotification(courierPhone, courierMessage)
+  await sendWhatsAppNotification(cleanCourierPhone, courierMessage)
 }
 
 export async function updateOrderStatus(orderNumber: string, newStatus: string, note?: string, courierId?: string) {
