@@ -28,6 +28,8 @@ export default function OrderActionPage({ params }: Props) {
   const handleAction = async () => {
     if (!orderNumber || !status) return
     
+    alert(`DIAGNOSTIK SISTEM:\nRole: ${role}\nStatus: ${status}\nCourier ID: ${courierId}\nCourier Phone: ${courierPhone}\n\nJika Phone kosong, berarti link WA rusak!`)
+    
     setLoading(true)
     const res = await updateOrderStatus(orderNumber, status, `Update via WhatsApp (${role})`, courierId || undefined, courierPhone || undefined)
     
