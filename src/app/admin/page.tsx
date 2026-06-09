@@ -266,9 +266,9 @@ export default function AdminDashboardPage() {
                 </div>
 
                 <div className="bg-slate-50 p-4 rounded-2xl">
-                  <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Daftar Barang ({order.items.length})</p>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Daftar Barang ({order.items?.length || 0})</p>
                   <div className="space-y-2">
-                    {order.items.map((item, idx) => (
+                    {(order.items || []).map((item, idx) => (
                       <div key={idx} className="flex justify-between items-center text-sm">
                         <span className="font-bold text-slate-700">{item.product?.name || 'Produk'} <span className="text-slate-400 mx-1">x{item.quantity}</span></span>
                         <span className="font-bold text-slate-900">Rp{(item.price * item.quantity).toLocaleString('id-ID')}</span>
@@ -357,7 +357,7 @@ export default function AdminDashboardPage() {
                 </td>
                 <td className="py-4 px-3">
                   <ul className="list-disc pl-4 text-xs space-y-1">
-                    {order.items.map((item, i) => (
+                    {(order.items || []).map((item, i) => (
                       <li key={i}>{item.product?.name} <span className="font-bold">(x{item.quantity})</span></li>
                     ))}
                   </ul>
