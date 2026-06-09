@@ -211,9 +211,10 @@ export async function updateOrderStatus(orderNumber: string, newStatus: string, 
       // Dapatkan nomor kurir yang dipilih
       let courierPhone = '628156605634'
       if (courierId) {
-        // Gunakan match untuk mengantisipasi ID berawalan drafts.
-        const c = await writeClient.fetch(`*[_type == "courier" && _id match $courierId][0]{phone}`, { courierId })
-        if (c?.phone) courierPhone = c.phone
+        // Fetch semua kurir lalu filter di JS agar kebal terhadap isu ID Drafts Sanity
+        const allCouriers = await writeClient.fetch(`*[_type == "courier"]{_id, phone}`)
+        const matchedCourier = allCouriers.find((c: any) => c._id === courierId || c._id === `drafts.${courierId}` || `drafts.${c._id}` === courierId)
+        if (matchedCourier?.phone) courierPhone = matchedCourier.phone
       }
 
       // Kumpulkan nomor telepon penjual (uniques)
@@ -252,9 +253,10 @@ export async function updateOrderStatus(orderNumber: string, newStatus: string, 
       // Dapatkan nomor kurir yang dipilih
       let courierPhone = '628156605634'
       if (courierId) {
-        // Gunakan match untuk mengantisipasi ID berawalan drafts.
-        const c = await writeClient.fetch(`*[_type == "courier" && _id match $courierId][0]{phone}`, { courierId })
-        if (c?.phone) courierPhone = c.phone
+        // Fetch semua kurir lalu filter di JS agar kebal terhadap isu ID Drafts Sanity
+        const allCouriers = await writeClient.fetch(`*[_type == "courier"]{_id, phone}`)
+        const matchedCourier = allCouriers.find((c: any) => c._id === courierId || c._id === `drafts.${courierId}` || `drafts.${c._id}` === courierId)
+        if (matchedCourier?.phone) courierPhone = matchedCourier.phone
       }
 
       // Kumpulkan nomor telepon penjual (uniques)
