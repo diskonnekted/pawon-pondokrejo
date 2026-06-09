@@ -108,11 +108,27 @@ export async function createOrder(formData: OrderFormData, items: CartItem[], to
 
       // 1. Kirim ke Admin
       console.log('Sending to Admin:', adminPhone)
+      
+      const couriers = await writeClient.fetch(`*[_type == "courier" && isActive == true]{_id, name}`)
+      let courierSelectionCod = ''
+      let courierSelectionQris = ''
+      
+      if (couriers && couriers.length > 0) {
+        couriers.forEach((c: any) => {
+          const safeName = encodeURIComponent(c.name)
+          courierSelectionCod += `\n👤 Kirim tugas ke ${c.name}: ${baseUrl}/order/${orderNumber}/action?role=admin&status=processing_cod&courierId=${c._id}&label=Kirim+Tugas+ke+${safeName}`
+          courierSelectionQris += `\n👤 Konfirmasi & Kirim ke ${c.name}: ${baseUrl}/order/${orderNumber}/action?role=admin&status=paid&courierId=${c._id}&label=Konfirmasi+dan+Kirim+ke+${safeName}`
+        })
+      } else {
+        courierSelectionCod = `\n✅ Konfirmasi Pesanan COD: ${baseUrl}/order/${orderNumber}/action?role=admin&status=processing_cod&label=Konfirmasi+Pesanan+COD`
+        courierSelectionQris = `\n✅ Konfirmasi Pembayaran: ${baseUrl}/order/${orderNumber}/action?role=admin&status=paid&label=Konfirmasi+Pembayaran+QRIS`
+      }
+
       if (isQris) {
-        const adminQrisMsg = `${waMessage}\n\n*⚠️ PEMBAYARAN QRIS*\nPembeli menggunakan QRIS. Mohon cek mutasi rekening Anda sebesar *Rp${totalAmount.toLocaleString('id-ID')}*.\nJika dana sudah masuk, klik link ini untuk memproses pesanan:\n✅ Konfirmasi Pembayaran: ${baseUrl}/order/${orderNumber}/action?role=admin&status=paid&label=Konfirmasi+Pembayaran+QRIS`
+        const adminQrisMsg = `${waMessage}\n\n*⚠️ PEMBAYARAN QRIS*\nPembeli menggunakan QRIS. Mohon cek mutasi rekening Anda sebesar *Rp${totalAmount.toLocaleString('id-ID')}*.\nJika dana sudah masuk, klik link kurir di bawah ini untuk mengonfirmasi dan mengirimkan tugas:\n${courierSelectionQris}`
         await sendWhatsAppNotification(adminPhone, adminQrisMsg)
       } else {
-        const adminCodMsg = `${waMessage}\n\n*⚠️ PESANAN COD*\nPembeli menggunakan COD (Bayar di Tempat). Jika pesanan ini valid/bukan fiktif, klik link di bawah ini untuk memproses dan meneruskannya ke Penjual & Kurir:\n✅ Konfirmasi Pesanan COD: ${baseUrl}/order/${orderNumber}/action?role=admin&status=processing_cod&label=Konfirmasi+Pesanan+COD`
+        const adminCodMsg = `${waMessage}\n\n*⚠️ PESANAN COD*\nPembeli menggunakan COD (Bayar di Tempat). Jika pesanan ini valid, klik link kurir di bawah ini untuk memproses dan meneruskannya ke Penjual & Kurir:\n${courierSelectionCod}`
         await sendWhatsAppNotification(adminPhone, adminCodMsg)
       }
 
@@ -137,7 +153,7 @@ export async function createOrder(formData: OrderFormData, items: CartItem[], to
   }
 }
 
-async function notifySellerAndCourier(orderNumber: string, customerName: string, deliveryAddress: string, items: {name: string, quantity: number}[], totalAmount: number) {
+async function notifySellerAndCourier(orderNumber: string, customerName: string, deliveryAddress: string, items: {name: string, quantity: number}[], totalAmount: number, courierPhone: string = '628156605634') {
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://pawon-Pondokrejo.vercel.app'
   
   // 3. Kirim ke Penjual
@@ -147,13 +163,13 @@ async function notifySellerAndCourier(orderNumber: string, customerName: string,
   await sendWhatsAppNotification('0895360396984', sellerMessage) // Todo: Fetch seller phones if applicable
 
   // 4. Kirim ke Kurir
-  console.log('Sending to Courier...')
+  console.log('Sending to Courier...', courierPhone)
   const courierLinks = `\n\n*UPDATE STATUS KURIR:*\n👍 Terima Order: ${baseUrl}/order/${orderNumber}/action?role=courier&status=accepted&label=Terima+Tugas+Pengantaran\n📦 Ambil dari Seller: ${baseUrl}/order/${orderNumber}/action?role=courier&status=shipped&label=Ambil+Barang+dari+Seller\n🚚 Mulai Kirim: ${baseUrl}/order/${orderNumber}/action?role=courier&status=delivering&label=Mulai+Pengiriman\n🏁 Selesai (Diterima): ${baseUrl}/order/${orderNumber}/action?role=courier&status=completed&label=Pesanan+Diterima+Warga\n⚠️ Ada Masalah: ${baseUrl}/order/${orderNumber}/action?role=courier&status=problem&label=Lapor+Masalah+Pengiriman`
   const courierMessage = `🚚 *TUGAS PENGANTARAN BARU* 🚚\n\nHalo Kurir PAWON,\nAda tugas pengantaran baru.\n\n📍 *Alamat Tujuan:* ${deliveryAddress}\n👤 *Penerima:* ${customerName}\n🆔 *No. Pesanan:* ${orderNumber}\n💰 *Tagihan:* Rp${totalAmount.toLocaleString('id-ID')} (Cek apakah COD atau QRIS)${courierLinks}`
-  await sendWhatsAppNotification('628156605634', courierMessage)
+  await sendWhatsAppNotification(courierPhone, courierMessage)
 }
 
-export async function updateOrderStatus(orderNumber: string, newStatus: string, note?: string) {
+export async function updateOrderStatus(orderNumber: string, newStatus: string, note?: string, courierId?: string) {
   try {
     const query = `*[_type == "order" && orderNumber == $orderNumber][0]{
       _id, customerName, customerPhone, deliveryAddress, totalAmount, paymentMethod, paymentStatus, status,
@@ -169,13 +185,21 @@ export async function updateOrderStatus(orderNumber: string, newStatus: string, 
     if (newStatus === 'paid') {
       if (order.paymentStatus === 'paid') return { success: false, error: 'Pesanan ini sudah dibayar sebelumnya.' }
       
-      await writeClient
-        .patch(order._id)
-        .set({ paymentStatus: 'paid', status: 'processing' })
-        .commit()
+      let patch = writeClient.patch(order._id).set({ paymentStatus: 'paid', status: 'processing' })
+      if (courierId) {
+        patch = patch.set({ courier: { _type: 'reference', _ref: courierId } })
+      }
+      await patch.commit()
 
       // Beri tahu pembeli bahwa pembayaran berhasil
       await sendWhatsAppNotification(order.customerPhone, `Halo *${order.customerName}*,\n\nPembayaran QRIS Anda untuk pesanan *${orderNumber}* sudah diterima oleh Admin Desa.\n\nBarang pesanan Anda saat ini sedang disiapkan oleh Penjual dan akan segera dikirim oleh Kurir ke alamat Anda.`)
+
+      // Dapatkan nomor kurir yang dipilih
+      let courierPhone = '628156605634'
+      if (courierId) {
+        const c = await writeClient.fetch(`*[_type == "courier" && _id == $courierId][0]{phone}`, { courierId })
+        if (c?.phone) courierPhone = c.phone
+      }
 
       // Lanjutkan notifikasi ke Seller & Courier
       await notifySellerAndCourier(
@@ -183,7 +207,8 @@ export async function updateOrderStatus(orderNumber: string, newStatus: string, 
         order.customerName, 
         order.deliveryAddress, 
         (order.items || []).map((i: any) => ({ name: i.product?.name || 'Produk', quantity: i.quantity })), 
-        order.totalAmount
+        order.totalAmount,
+        courierPhone
       )
 
       return { success: true }
@@ -193,13 +218,21 @@ export async function updateOrderStatus(orderNumber: string, newStatus: string, 
     if (newStatus === 'processing_cod') {
       if (order.status !== 'pending') return { success: false, error: 'Pesanan ini sudah diproses sebelumnya.' }
       
-      await writeClient
-        .patch(order._id)
-        .set({ status: 'processing' })
-        .commit()
+      let patch = writeClient.patch(order._id).set({ status: 'processing' })
+      if (courierId) {
+        patch = patch.set({ courier: { _type: 'reference', _ref: courierId } })
+      }
+      await patch.commit()
 
       // Beri tahu pembeli bahwa pesanan diproses
       await sendWhatsAppNotification(order.customerPhone, `Halo *${order.customerName}*,\n\nPesanan COD Anda (*${orderNumber}*) sudah dikonfirmasi oleh Admin Desa.\n\nBarang pesanan Anda saat ini sedang disiapkan oleh Penjual dan akan segera dikirim oleh Kurir ke alamat Anda.`)
+
+      // Dapatkan nomor kurir yang dipilih
+      let courierPhone = '628156605634'
+      if (courierId) {
+        const c = await writeClient.fetch(`*[_type == "courier" && _id == $courierId][0]{phone}`, { courierId })
+        if (c?.phone) courierPhone = c.phone
+      }
 
       // Lanjutkan notifikasi ke Seller & Courier
       await notifySellerAndCourier(
@@ -207,7 +240,8 @@ export async function updateOrderStatus(orderNumber: string, newStatus: string, 
         order.customerName, 
         order.deliveryAddress, 
         (order.items || []).map((i: any) => ({ name: i.product?.name || 'Produk', quantity: i.quantity })), 
-        order.totalAmount
+        order.totalAmount,
+        courierPhone
       )
 
       return { success: true }
