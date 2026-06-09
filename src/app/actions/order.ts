@@ -123,7 +123,7 @@ export async function createOrder(formData: OrderFormData, items: CartItem[], to
       if (isQris) {
         await sendWhatsAppNotification(formData.phone, `Halo *${formData.name}*,\n\nTerima kasih telah berbelanja di *PAWON Pondokrejo*. Pesanan Anda *${orderNumber}* telah kami terima.\n\nTotal: *Rp${totalAmount.toLocaleString('id-ID')}*\nMetode: *QRIS*\n\nAdmin Desa sedang memverifikasi pembayaran Anda. Kami akan segera memproses pesanan setelah pembayaran terkonfirmasi.`)
       } else {
-        await sendWhatsAppNotification(formData.phone, `Halo *${formData.name}*,\n\nTerima kasih telah berbelanja di *PAWON Pondokrejo*. Pesanan Anda *${orderNumber}* telah kami terima dan sedang diproses.\n\nTotal: *Rp${totalAmount.toLocaleString('id-ID')}*\nMetode: *COD*${buyerLinks}\n\nAdmin atau Kurir kami akan segera menghubungi Anda.`)
+        await sendWhatsAppNotification(formData.phone, `Halo *${formData.name}*,\n\nTerima kasih telah berbelanja di *PAWON Pondokrejo*. Pesanan Anda *${orderNumber}* telah kami terima dan sedang diproses.\n\nTotal: *Rp${totalAmount.toLocaleString('id-ID')}*\nMetode: *COD*\n\nAdmin atau Kurir kami akan segera menghubungi Anda.`)
       }
 
       // 3 & 4. Seller & Courier will be notified LATER when Admin confirms the order.
