@@ -54,14 +54,14 @@ export default function MobileCartPage() {
               <div className="flex items-center justify-between mt-2">
                 <div className="flex items-center bg-slate-100 rounded-xl p-1">
                   <button
-                    onClick={() => updateQuantity(item._id, item.quantity - 1)}
+                    onClick={() => updateQuantity(item._id, -1)}
                     className="p-1 text-slate-500 hover:text-green-600 active:scale-90 transition-all"
                   >
                     <Minus className="w-4 h-4" />
                   </button>
                   <span className="w-8 text-center font-black text-sm">{item.quantity}</span>
                   <button
-                    onClick={() => updateQuantity(item._id, item.quantity + 1)}
+                    onClick={() => updateQuantity(item._id, 1)}
                     className="p-1 text-slate-500 hover:text-green-600 active:scale-90 transition-all"
                   >
                     <Plus className="w-4 h-4" />

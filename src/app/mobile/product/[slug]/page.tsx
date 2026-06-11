@@ -6,6 +6,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { MessageCircle, MapPin, ChevronLeft, ShoppingCart, Share2 } from "lucide-react";
 import AddToCartButton from "@/components/Cart/AddToCartButton";
+import CartIconBadge from "@/components/Cart/CartIconBadge";
 import { Product } from "@/types";
 
 interface Props {
@@ -34,9 +35,7 @@ export default async function MobileProductPage({ params }: Props) {
           <button className="p-3 rounded-2xl bg-white/80 backdrop-blur-md shadow-lg pointer-events-auto active:scale-90 transition-all">
             <Share2 className="w-6 h-6 text-slate-900" />
           </button>
-          <Link href="/cart" className="p-3 rounded-2xl bg-white/80 backdrop-blur-md shadow-lg pointer-events-auto active:scale-90 transition-all">
-            <ShoppingCart className="w-6 h-6 text-slate-900" />
-          </Link>
+          <CartIconBadge />
         </div>
       </div>
 

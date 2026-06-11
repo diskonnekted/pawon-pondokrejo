@@ -141,10 +141,11 @@ export async function createOrder(formData: OrderFormData, items: CartItem[], to
       console.log('Sending to Buyer:', formData.phone)
       const buyerLinks = `\n\n*KONFIRMASI PENERIMAAN:*\n✅ Barang Diterima: ${baseUrl}/order/${orderNumber}/action?role=buyer&status=completed&label=Barang+Sudah+Diterima\n❌ Barang Bermasalah: ${baseUrl}/order/${orderNumber}/action?role=buyer&status=problem&label=Lapor+Barang+Bermasalah`
       
+      const itemsList = items.map(i => `- ${i.name} (x${i.quantity})`).join('\n')
       if (isQris) {
-        await sendWhatsAppNotification(formData.phone, `Halo *${formData.name}*,\n\nTerima kasih telah berbelanja di *PAWON Pondokrejo*. Pesanan Anda *${orderNumber}* telah kami terima.\n\nTotal: *Rp${totalAmount.toLocaleString('id-ID')}*\nMetode: *QRIS*\n\nAdmin Desa sedang memverifikasi pembayaran Anda. Kami akan segera memproses pesanan setelah pembayaran terkonfirmasi.`)
+        await sendWhatsAppNotification(formData.phone, `Halo *${formData.name}*,\n\nTerima kasih telah berbelanja di *PAWON Pondokrejo*. Pesanan Anda *${orderNumber}* telah kami terima.\n\n🛍️ *Barang Pesanan:*\n${itemsList}\n\nTotal: *Rp${totalAmount.toLocaleString('id-ID')}*\nMetode: *QRIS*\n\nAdmin Desa sedang memverifikasi pembayaran Anda. Kami akan segera memproses pesanan setelah pembayaran terkonfirmasi.`)
       } else {
-        await sendWhatsAppNotification(formData.phone, `Halo *${formData.name}*,\n\nTerima kasih telah berbelanja di *PAWON Pondokrejo*. Pesanan Anda *${orderNumber}* telah kami terima dan sedang diproses.\n\nTotal: *Rp${totalAmount.toLocaleString('id-ID')}*\nMetode: *COD*\n\nAdmin atau Kurir kami akan segera menghubungi Anda.`)
+        await sendWhatsAppNotification(formData.phone, `Halo *${formData.name}*,\n\nTerima kasih telah berbelanja di *PAWON Pondokrejo*. Pesanan Anda *${orderNumber}* telah kami terima dan sedang diproses.\n\n🛍️ *Barang Pesanan:*\n${itemsList}\n\nTotal: *Rp${totalAmount.toLocaleString('id-ID')}*\nMetode: *COD*\n\nAdmin atau Kurir kami akan segera menghubungi Anda.`)
       }
 
       // 3 & 4. Seller & Courier will be notified LATER when Admin confirms the order.
@@ -158,13 +159,13 @@ export async function createOrder(formData: OrderFormData, items: CartItem[], to
   }
 }
 
-async function notifySellerAndCourier(orderNumber: string, customerName: string, deliveryAddress: string, items: {name: string, quantity: number}[], totalAmount: number, courierPhone: string = '6282241593592', sellerPhones: string[] = [], fallbackWarning: string = '') {
+async function notifySellerAndCourier(orderNumber: string, customerName: string, deliveryAddress: string, items: {name: string, quantity: number, vendorName?: string}[], totalAmount: number, courierPhone: string = '6282241593592', sellerPhones: string[] = [], fallbackWarning: string = '', courierName: string = 'Kurir PAWON') {
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://pawon.pondokrejo.id'
   
   // 3. Kirim ke Penjual
   console.log('Sending to Seller(s)...', sellerPhones)
   const sellerLinks = `\n\n*UPDATE STATUS PENJUAL:*\n📦 Serahkan ke Kurir: ${baseUrl}/order/${orderNumber}/action?role=seller&status=shipped&label=Serahkan+Barang+ke+Kurir\n⚠️ Ada Masalah: ${baseUrl}/order/${orderNumber}/action?role=seller&status=problem&label=Transaksi+Bermasalah`
-  const sellerMessage = `🔔 *PESANAN BARU UNTUK SELLER* 🔔\n\nHalo Seller,\nAda pesanan masuk yang perlu disiapkan segera.\n\n👤 *Pemesan:* ${customerName}\n🆔 *No. Pesanan:* ${orderNumber}\n\n🛍️ *Item yang dipesan:* \n${items.map(i => `- ${i.name} (x${i.quantity})`).join('\n')}${sellerLinks}`
+  const sellerMessage = `🔔 *PESANAN BARU UNTUK SELLER* 🔔\n\nHalo Seller,\nAda pesanan masuk yang perlu disiapkan segera.\n\n👤 *Pemesan:* ${customerName}\n🆔 *No. Pesanan:* ${orderNumber}\n🛵 *Kurir Pengambil:* ${courierName}\n\n🛍️ *Item yang dipesan:* \n${items.map(i => `- ${i.name} (x${i.quantity})`).join('\n')}${sellerLinks}`
   
   if (sellerPhones.length > 0) {
     for (let phone of sellerPhones) {
@@ -184,15 +185,15 @@ async function notifySellerAndCourier(orderNumber: string, customerName: string,
   console.log('Sending to Courier...', cleanCourierPhone)
 
   const courierLinks = `\n\n*UPDATE STATUS KURIR:*\n👍 Terima Order: ${baseUrl}/order/${orderNumber}/action?role=courier&status=accepted&label=Terima+Tugas+Pengantaran\n📦 Ambil dari Seller: ${baseUrl}/order/${orderNumber}/action?role=courier&status=shipped&label=Ambil+Barang+dari+Seller\n🚚 Mulai Kirim: ${baseUrl}/order/${orderNumber}/action?role=courier&status=delivering&label=Mulai+Pengiriman\n🏁 Barang Diserahkan: ${baseUrl}/order/${orderNumber}/action?role=courier&status=delivered&label=Barang+Telah+Diserahkan\n⚠️ Ada Masalah: ${baseUrl}/order/${orderNumber}/action?role=courier&status=problem&label=Lapor+Masalah+Pengiriman`
-  const courierMessage = `🚚 *TUGAS PENGANTARAN BARU* 🚚${fallbackWarning}\n\nHalo Kurir PAWON,\nAda tugas pengantaran baru.\n\n📍 *Alamat Tujuan:* ${deliveryAddress}\n👤 *Penerima:* ${customerName}\n🆔 *No. Pesanan:* ${orderNumber}\n💰 *Tagihan:* Rp${totalAmount.toLocaleString('id-ID')} (Cek apakah COD atau QRIS)${courierLinks}`
+  const courierMessage = `🚚 *TUGAS PENGANTARAN BARU* 🚚${fallbackWarning}\n\nHalo Kurir PAWON,\nAda tugas pengantaran baru.\n\n📍 *Alamat Tujuan:* ${deliveryAddress}\n👤 *Penerima:* ${customerName}\n🆔 *No. Pesanan:* ${orderNumber}\n💰 *Tagihan:* Rp${totalAmount.toLocaleString('id-ID')} (Cek apakah COD atau QRIS)\n\n🛍️ *Barang yang Harus Diambil:*\n${items.map(i => `- ${i.name} (x${i.quantity}) dari *${i.vendorName || 'Penjual'}*`).join('\n')}${courierLinks}`
   await sendWhatsAppNotification(cleanCourierPhone, courierMessage)
 }
 
 export async function updateOrderStatus(orderNumber: string, newStatus: string, note?: string, courierId?: string, courierPhoneParam?: string) {
   try {
     const query = `*[_type == "order" && orderNumber == $orderNumber][0]{
-      _id, customerName, customerPhone, deliveryAddress, totalAmount, paymentMethod, paymentStatus, status, courier->{phone},
-      items[]{ quantity, product->{name, vendor->{phone}} }
+      _id, customerName, customerPhone, deliveryAddress, totalAmount, paymentMethod, paymentStatus, status, courier->{phone, name},
+      items[]{ quantity, product->{name, vendor->{phone, name}} }
     }`
     const order = await writeClient.fetch(query, { orderNumber })
 
@@ -210,24 +211,31 @@ export async function updateOrderStatus(orderNumber: string, newStatus: string, 
       }
       await patch.commit()
 
-      // Beri tahu pembeli bahwa pembayaran berhasil
-      await sendWhatsAppNotification(order.customerPhone, `Halo *${order.customerName}*,\n\nPembayaran QRIS Anda untuk pesanan *${orderNumber}* sudah diterima oleh Admin Desa.\n\nBarang pesanan Anda saat ini sedang disiapkan oleh Penjual dan akan segera dikirim oleh Kurir ke alamat Anda.`)
+
 
       // Dapatkan nomor kurir yang dipilih
       let courierPhone = courierPhoneParam
+      let courierName = order.courier?.name || 'Kurir PAWON'
       let fallbackWarning = ''
       
-      if (courierId && !courierPhoneParam) {
+      if (courierId && (!courierPhoneParam || courierName === 'Kurir PAWON')) {
         // Fetch tanpa cache agar data real-time
-        const allCouriers = await writeClient.fetch(`*[_type == "courier"]{_id, phone}`, {}, { cache: 'no-store' })
+        const allCouriers = await writeClient.fetch(`*[_type == "courier"]{_id, phone, name}`, {}, { cache: 'no-store' })
         const matchedCourier = allCouriers.find((c: any) => c._id === courierId || c._id === `drafts.${courierId}` || `drafts.${c._id}` === courierId)
-        if (matchedCourier?.phone) courierPhone = matchedCourier.phone
+        if (matchedCourier?.phone) {
+          courierPhone = matchedCourier.phone
+          if (matchedCourier?.name) courierName = matchedCourier.name
+        }
       }
       
       if (!courierPhone) {
         courierPhone = '6282241593592'
         fallbackWarning = `\n\n*(Sistem melempar tugas ini ke Septian karena gagal menemukan nomor HP kurir di URL WA atau Database Cache)*`
       }
+
+      // Beri tahu pembeli bahwa pembayaran berhasil
+      const itemsList = (order.items || []).map((i: any) => `- ${i.product?.name || 'Produk'} (x${i.quantity})`).join('\n')
+      await sendWhatsAppNotification(order.customerPhone, `Halo *${order.customerName}*,\n\nPembayaran QRIS Anda untuk pesanan *${orderNumber}* sudah diterima oleh Admin Desa.\n\n🛍️ *Barang Pesanan:*\n${itemsList}\n\nBarang pesanan Anda saat ini sedang disiapkan oleh Penjual dan akan segera dikirim oleh *${courierName}* ke alamat Anda.`)
 
       // Kumpulkan nomor telepon penjual (uniques)
       const sellerPhones = Array.from(new Set((order.items || [])
@@ -240,11 +248,12 @@ export async function updateOrderStatus(orderNumber: string, newStatus: string, 
         orderNumber, 
         order.customerName, 
         order.deliveryAddress, 
-        (order.items || []).map((i: any) => ({ name: i.product?.name || 'Produk', quantity: i.quantity })), 
+        (order.items || []).map((i: any) => ({ name: i.product?.name || 'Produk', quantity: i.quantity, vendorName: i.product?.vendor?.name })), 
         order.totalAmount,
         courierPhone,
         sellerPhones,
-        fallbackWarning
+        fallbackWarning,
+        courierName
       )
 
       return { success: true }
@@ -260,24 +269,31 @@ export async function updateOrderStatus(orderNumber: string, newStatus: string, 
       }
       await patch.commit()
 
-      // Beri tahu pembeli bahwa pesanan diproses
-      await sendWhatsAppNotification(order.customerPhone, `Halo *${order.customerName}*,\n\nPesanan COD Anda (*${orderNumber}*) sudah dikonfirmasi oleh Admin Desa.\n\nBarang pesanan Anda saat ini sedang disiapkan oleh Penjual dan akan segera dikirim oleh Kurir ke alamat Anda.`)
+
 
       // Dapatkan nomor kurir yang dipilih
       let courierPhone = courierPhoneParam
+      let courierName = order.courier?.name || 'Kurir PAWON'
       let fallbackWarning = ''
       
-      if (courierId && !courierPhoneParam) {
+      if (courierId && (!courierPhoneParam || courierName === 'Kurir PAWON')) {
         // Fetch tanpa cache agar data real-time
-        const allCouriers = await writeClient.fetch(`*[_type == "courier"]{_id, phone}`, {}, { cache: 'no-store' })
+        const allCouriers = await writeClient.fetch(`*[_type == "courier"]{_id, phone, name}`, {}, { cache: 'no-store' })
         const matchedCourier = allCouriers.find((c: any) => c._id === courierId || c._id === `drafts.${courierId}` || `drafts.${c._id}` === courierId)
-        if (matchedCourier?.phone) courierPhone = matchedCourier.phone
+        if (matchedCourier?.phone) {
+          courierPhone = matchedCourier.phone
+          if (matchedCourier?.name) courierName = matchedCourier.name
+        }
       }
       
       if (!courierPhone) {
         courierPhone = '6282241593592'
         fallbackWarning = `\n\n*(Sistem melempar tugas ini ke Septian karena gagal menemukan nomor HP kurir di URL WA atau Database Cache)*`
       }
+
+      // Beri tahu pembeli bahwa pesanan diproses
+      const itemsList = (order.items || []).map((i: any) => `- ${i.product?.name || 'Produk'} (x${i.quantity})`).join('\n')
+      await sendWhatsAppNotification(order.customerPhone, `Halo *${order.customerName}*,\n\nPesanan COD Anda (*${orderNumber}*) sudah dikonfirmasi oleh Admin Desa.\n\n🛍️ *Barang Pesanan:*\n${itemsList}\n\nBarang pesanan Anda saat ini sedang disiapkan oleh Penjual dan akan segera dikirim oleh *${courierName}* ke alamat Anda.`)
 
       // Kumpulkan nomor telepon penjual (uniques)
       const sellerPhones = Array.from(new Set((order.items || [])
@@ -290,10 +306,12 @@ export async function updateOrderStatus(orderNumber: string, newStatus: string, 
         orderNumber, 
         order.customerName, 
         order.deliveryAddress, 
-        (order.items || []).map((i: any) => ({ name: i.product?.name || 'Produk', quantity: i.quantity })), 
+        (order.items || []).map((i: any) => ({ name: i.product?.name || 'Produk', quantity: i.quantity, vendorName: i.product?.vendor?.name })), 
         order.totalAmount,
         courierPhone,
-        sellerPhones
+        sellerPhones,
+        '',
+        courierName
       )
 
       return { success: true }
@@ -306,12 +324,15 @@ export async function updateOrderStatus(orderNumber: string, newStatus: string, 
         .set({ status: 'delivering' })
         .commit()
 
-      await sendWhatsAppNotification(order.customerPhone, `Halo *${order.customerName}*,\n\nPesanan Anda (*${orderNumber}*) saat ini *SEDANG DALAM PERJALANAN* menuju alamat Anda oleh Kurir kami.\n\nHarap siapkan uang tunai sebesar *Rp${order.totalAmount.toLocaleString('id-ID')}* (jika menggunakan COD).\n\nKurir akan segera sampai dan menghubungi Anda.`)
+      const courierName = order.courier?.name || 'Kurir PAWON'
+      const itemsList = (order.items || []).map((i: any) => `- ${i.product?.name || 'Produk'} (x${i.quantity})`).join('\n')
+      await sendWhatsAppNotification(order.customerPhone, `Halo *${order.customerName}*,\n\nPesanan Anda (*${orderNumber}*) saat ini *SEDANG DALAM PERJALANAN* menuju alamat Anda oleh *${courierName}*.\n\n🛍️ *Barang Pesanan:*\n${itemsList}\n\nHarap siapkan uang tunai sebesar *Rp${order.totalAmount.toLocaleString('id-ID')}* (jika menggunakan COD).\n\nKurir akan segera sampai dan menghubungi Anda.`)
 
       // Notifikasi ke Admin
       const settings = await writeClient.fetch(APP_SETTINGS_QUERY)
       const adminPhone = settings?.adminPhone || '081328128315'
-      await sendWhatsAppNotification(adminPhone, `🚚 *PESANAN DIKIRIM*\nPesanan ${orderNumber} sedang diantar oleh kurir ke pembeli.`)
+      const itemsList = (order.items || []).map((i: any) => `- ${i.product?.name || 'Produk'} (x${i.quantity})`).join('\n')
+      await sendWhatsAppNotification(adminPhone, `🚚 *PESANAN DIKIRIM*\nPesanan ${orderNumber} sedang diantar oleh kurir ke pembeli.\n\n🛍️ *Item:*\n${itemsList}`)
 
       return { success: true }
     }
@@ -337,7 +358,8 @@ export async function updateOrderStatus(orderNumber: string, newStatus: string, 
           // Jika pembeli belum klik selesai (status masih delivered)
           if (checkOrder && checkOrder.status === 'delivered') {
             const adminFinishLink = `${baseUrl}/order/${orderNumber}/action?role=admin&status=completed&label=Selesaikan+Pesanan+Manual`
-            await sendWhatsAppNotification(adminPhone, `⚠️ *PERHATIAN ADMIN* ⚠️\n\nKurir melaporkan bahwa pesanan ${orderNumber} telah diserahkan sejak 5 menit yang lalu, namun pembeli belum mengklik tombol konfirmasi terima.\n\nSilakan telepon pembeli di nomor ${order.customerPhone} untuk memastikan barang benar-benar sudah diterima.\n\nJika sudah dikonfirmasi secara lisan, silakan klik link di bawah ini untuk menutup pesanan:\n\n🏁 Tutup Pesanan: ${adminFinishLink}`)
+            const itemsList = (order.items || []).map((i: any) => `- ${i.product?.name || 'Produk'} (x${i.quantity})`).join('\n')
+            await sendWhatsAppNotification(adminPhone, `⚠️ *PERHATIAN ADMIN* ⚠️\n\nKurir melaporkan bahwa pesanan ${orderNumber} telah diserahkan sejak 5 menit yang lalu, namun pembeli belum mengklik tombol konfirmasi terima.\n\n🛍️ *Item:*\n${itemsList}\n\nSilakan telepon pembeli di nomor ${order.customerPhone} untuk memastikan barang benar-benar sudah diterima.\n\nJika sudah dikonfirmasi secara lisan, silakan klik link di bawah ini untuk menutup pesanan:\n\n🏁 Tutup Pesanan: ${adminFinishLink}`)
           }
         } catch (e) {
           console.error('Failed in admin delayed notification', e)
@@ -357,7 +379,8 @@ export async function updateOrderStatus(orderNumber: string, newStatus: string, 
     const settings = await writeClient.fetch(APP_SETTINGS_QUERY)
     const adminPhone = settings?.adminPhone || '081328128315'
 
-    const adminMsg = `🔄 *UPDATE STATUS PESANAN*\n------------------\n🆔 *No:* ${orderNumber}\n👤 *User:* ${order.customerName}\n📈 *Status Baru:* ${newStatus}\n📝 *Catatan:* ${note || '-'}\n------------------`
+    const itemsList = (order.items || []).map((i: any) => `- ${i.product?.name || 'Produk'} (x${i.quantity})`).join('\n')
+    const adminMsg = `🔄 *UPDATE STATUS PESANAN*\n------------------\n🆔 *No:* ${orderNumber}\n👤 *User:* ${order.customerName}\n📈 *Status Baru:* ${newStatus}\n🛍️ *Item:*\n${itemsList}\n📝 *Catatan:* ${note || '-'}\n------------------`
     await sendWhatsAppNotification(adminPhone, adminMsg)
 
     return { success: true }
